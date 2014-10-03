@@ -1,4 +1,4 @@
-package com.ui.components;
+package com.ui.components.utils;
 
 public class LogsManager {
 

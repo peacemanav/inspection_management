@@ -82,6 +82,10 @@ public class LoginActivity extends ActionBarActivity {
         public void onLoginSuccess(HttpResponse httpResponse) {
             Toast.makeText(getActivity(), "login success", Toast.LENGTH_SHORT)
                     .show();
+//            getActivity().getSupportFragmentManager().beginTransaction()
+//            .add(R.id.container, new PartnerFragment()).commit();
+            getActivity().getSupportFragmentManager().beginTransaction()
+            .add(R.id.container, new TestFragment()).addToBackStack(null).commit();
         }
     }
 }
