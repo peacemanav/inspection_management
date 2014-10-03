@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="login_button_pressed_color">#aec8e8</color>
+    <color name="login_button_focused_color">#aec8e8</color>
+    <color name="login_button_default_color">#85abdb</color>
+    <color name="login_edit_text_divider_color">#cfddf1</color>
+</resources>

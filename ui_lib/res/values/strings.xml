@@ -1,0 +1,15 @@
+<resources>
+
+    <string name="app_name">AndroidUILib</string>
+    <string name="login">Log In</string>
+    <string name="user_name_hint">User Name</string>
+    <string name="password_hint">Password</string>
+    <string name="error_title">Error</string>
+    <string name="button_ok">Ok</string>
+    <string name="error_user_name_missing">User name is missing</string>
+    <string name="error_login_failed">Login failed, please username and password</string>
+    <string name="error_login_cancelled">Login is cancelled</string>
+    <string name="error_password_missing">Password is missing</string>
+    <string name="error_bad_internet">Internet connectivity is really bad, try again</string>
+
+</resources>
