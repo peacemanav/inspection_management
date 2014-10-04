@@ -92,7 +92,7 @@ public class LoginActivity extends ActionBarActivity {
 //            getActivity().getSupportFragmentManager().beginTransaction()
 //            .add(R.id.container, new PartnerFragment()).commit();
             getActivity().getSupportFragmentManager().beginTransaction()
-            .add(R.id.container, new TestFragment()).addToBackStack(null).commit();
+            .remove(this).add(R.id.container, new TestFragment()).commit();
         }
     }
 }

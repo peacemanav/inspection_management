@@ -5,6 +5,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.CharArrayBuffer;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -17,36 +18,67 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.CursorAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.inspection.management.LoginActivity.PlaceholderFragment;
+import com.inspection.management.db.InspectionMetadata.CarrierTable;
 import com.inspection.management.db.InspectionMetadata.PartnerTable;
 
-public class TestFragment extends Fragment implements LoaderCallbacks<Cursor> {
+public class TestFragment extends Fragment implements LoaderCallbacks<Cursor>,
+		OnItemClickListener {
+
+	/** TAG. */
+	private static final String TAG = TestFragment.class.getSimpleName();
 
 	private ListView mListView;
+
 	private PartnerSearchAdapter mPartnerSearchAdapter;
 
 	private EditText mSearchEditText;
 
-	private int SEARCH_LOADER_ID = 1000;
+	private int SEARCH_PARTNER_LOADER_ID = 1000;
+	private int SEARCH_CARRIER_LOADER_ID = 1001;
+
+	private int mLoaderId;
 
 	private String mSearchText = "";
+
+	public static int SCREEN_SELECT_PARTNER = 1;
+	public static int SCREEN_SELECT_CARRIER = 2;
+
+	private int mCurrentScreen = SCREEN_SELECT_PARTNER;
+
+	public TestFragment() {
+
+	}
+
+	public TestFragment(int screen) {
+		mCurrentScreen = screen;
+	}
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
+
 		getActivity().getActionBar().show();
-		getActivity().getActionBar().setTitle(R.string.select_partner_title);
-		
-		insertDummyData();
+		if (SCREEN_SELECT_PARTNER == mCurrentScreen) {
+			mLoaderId = SEARCH_PARTNER_LOADER_ID;
+			getActivity().getActionBar()
+					.setTitle(R.string.select_partner_title);
+			insertPartnerDummyData();
+		} else {
+			mLoaderId = SEARCH_CARRIER_LOADER_ID;
+			getActivity().getActionBar()
+					.setTitle(R.string.select_carrier_title);
+			insertCarrierDummyData();
+		}
 	}
-	
-	private void insertDummyData() {
+
+	private void insertPartnerDummyData() {
 
 		// clean old data.
 		getActivity().getContentResolver().delete(PartnerTable.CONTENT_URI,
@@ -63,13 +95,37 @@ public class TestFragment extends Fragment implements LoaderCallbacks<Cursor> {
 			if (asciiCode == 91) {
 				asciiCode = 65;
 			}
-			getActivity().getContentResolver().insert(PartnerTable.CONTENT_URI,
+			// getActivity().getContentResolver().insert(PartnerTable.CONTENT_URI,
+			// value);
+		}
+		getActivity().getContentResolver().bulkInsert(PartnerTable.CONTENT_URI,
+				values);
+	}
+
+	private void insertCarrierDummyData() {
+
+		// clean old data.
+		getActivity().getContentResolver().delete(CarrierTable.CONTENT_URI,
+				null, null);
+
+		final ContentValues[] values = new ContentValues[52];
+		int asciiCode = 65;
+		for (int i = 0; i < values.length; i++) {
+			final ContentValues value = new ContentValues();
+			value.put(CarrierTable.CARRIER_NAME, (char) asciiCode
+					+ " some random text");
+			values[i] = value;
+			asciiCode++;
+			if (asciiCode == 91) {
+				asciiCode = 65;
+			}
+			getActivity().getContentResolver().insert(CarrierTable.CONTENT_URI,
 					value);
 		}
 		// getActivity().getContentResolver().bulkInsert(PartnerTable.CONTENT_URI,
 		// values);
 	}
-	
+
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
@@ -84,14 +140,29 @@ public class TestFragment extends Fragment implements LoaderCallbacks<Cursor> {
 		mListView = (ListView) view.findViewById(R.id.list_view);
 		mSearchEditText = (EditText) view.findViewById(R.id.search_text);
 		mSearchEditText.addTextChangedListener(mTextWatcher);
+		doSearchTextSettings();
 
-		final Cursor cursor = getActivity().getContentResolver().query(
-				PartnerTable.CONTENT_URI, PartnerTableQuery.PROJECTION, null,
-				null, PartnerTableQuery.SORT_ORDER);
+		Cursor cursor = null;
+		if (SCREEN_SELECT_PARTNER == mCurrentScreen) {
+			cursor = getActivity().getContentResolver().query(
+					PartnerTable.CONTENT_URI, PartnerTableQuery.PROJECTION,
+					null, null, PartnerTableQuery.SORT_ORDER);
+		} else {
+			cursor = getActivity().getContentResolver().query(
+					CarrierTable.CONTENT_URI, CarrierTableQuery.PROJECTION,
+					null, null, CarrierTableQuery.SORT_ORDER);
+		}
 
-		mPartnerSearchAdapter = new PartnerSearchAdapter(getActivity(), cursor);
+		mPartnerSearchAdapter = new PartnerSearchAdapter(getActivity(), cursor, mCurrentScreen);
 		mListView.setAdapter(mPartnerSearchAdapter);
+		mListView.setOnItemClickListener(this);
 		Log.d("test", "onViewCreated");
+	}
+
+	private void doSearchTextSettings() {
+		if (SCREEN_SELECT_CARRIER == mCurrentScreen) {
+			mSearchEditText.setHint(R.string.hint_search_carrier);
+		}
 	}
 
 	private TextWatcher mTextWatcher = new TextWatcher() {
@@ -100,8 +171,8 @@ public class TestFragment extends Fragment implements LoaderCallbacks<Cursor> {
 		public void onTextChanged(CharSequence s, int start, int before,
 				int count) {
 			mSearchText = s.toString();
-			getActivity().getSupportLoaderManager().restartLoader(
-					SEARCH_LOADER_ID, null, TestFragment.this);
+			getActivity().getSupportLoaderManager().restartLoader(mLoaderId,
+					null, TestFragment.this);
 		}
 
 		@Override
@@ -126,8 +197,8 @@ public class TestFragment extends Fragment implements LoaderCallbacks<Cursor> {
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 		Log.d("test", "onActivityCreated");
-		getActivity().getSupportLoaderManager().initLoader(SEARCH_LOADER_ID,
-				null, this);
+		getActivity().getSupportLoaderManager().initLoader(mLoaderId, null,
+				this);
 		// new DummyAskTask().execute();
 	}
 
@@ -159,10 +230,13 @@ public class TestFragment extends Fragment implements LoaderCallbacks<Cursor> {
 
 		private final CharArrayBuffer mBuffer = new CharArrayBuffer(128);
 		private int[] mCellStates;
+		
+		private int mCurrentScreen;
 
-		public PartnerSearchAdapter(Context context, Cursor cursor) {
+		public PartnerSearchAdapter(Context context, Cursor cursor, int currentScreen) {
 			super(context, cursor, false);
 			mCellStates = cursor == null ? null : new int[cursor.getCount()];
+			mCurrentScreen = currentScreen;
 		}
 
 		@Override
@@ -205,7 +279,13 @@ public class TestFragment extends Fragment implements LoaderCallbacks<Cursor> {
 				} else {
 					cursor.moveToPosition(position - 1);
 
-					cursor.copyStringToBuffer(PartnerTableQuery.TITLE, mBuffer);
+					if (SCREEN_SELECT_PARTNER == mCurrentScreen) {
+						cursor.copyStringToBuffer(PartnerTableQuery.TITLE,
+								mBuffer);
+					} else {
+						cursor.copyStringToBuffer(CarrierTableQuery.TITLE,
+								mBuffer);
+					}
 					if (mBuffer.sizeCopied > 0
 							&& holder.titleBuffer.sizeCopied > 0
 							&& mBuffer.data[0] != holder.titleBuffer.data[0]) {
@@ -286,6 +366,16 @@ public class TestFragment extends Fragment implements LoaderCallbacks<Cursor> {
 		String SORT_ORDER = PartnerTable.PARTNER_NAME + " ASC";
 	}
 
+	private interface CarrierTableQuery {
+		String[] PROJECTION = { CarrierTable._ID, CarrierTable.CARRIER_NAME,
+				CarrierTable.ACCEPTED, CarrierTable.REJECTED,
+				CarrierTable.TENTATIVE };
+
+		int TITLE = 1;
+
+		String SORT_ORDER = CarrierTable.CARRIER_NAME + " ASC";
+	}
+
 	@Override
 	public Loader<Cursor> onCreateLoader(int loaderId, Bundle bundle) {
 
@@ -293,13 +383,26 @@ public class TestFragment extends Fragment implements LoaderCallbacks<Cursor> {
 
 		String selection = null;
 		String[] selectionArgs = null;
+		String[] projection = null;
+		String sortOrder = null;
+		Uri uri = null;
 
-		selection = PartnerTable.PARTNER_NAME + " LIKE ?";
-		selectionArgs = new String[] { "%" + mSearchText + "%" };
+		if (SCREEN_SELECT_PARTNER == mCurrentScreen) {
+			selection = PartnerTable.PARTNER_NAME + " LIKE ?";
+			selectionArgs = new String[] { "%" + mSearchText + "%" };
+			projection = PartnerTableQuery.PROJECTION;
+			sortOrder = PartnerTableQuery.SORT_ORDER;
+			uri = PartnerTable.CONTENT_URI;
+		} else {
+			selection = CarrierTable.CARRIER_NAME + " LIKE ?";
+			selectionArgs = new String[] { "%" + mSearchText + "%" };
+			projection = CarrierTableQuery.PROJECTION;
+			sortOrder = CarrierTableQuery.SORT_ORDER;
+			uri = CarrierTable.CONTENT_URI;
+		}
 
-		final CursorLoader cursorLoader = new CursorLoader(getActivity(),
-				PartnerTable.CONTENT_URI, PartnerTableQuery.PROJECTION,
-				selection, selectionArgs, PartnerTableQuery.SORT_ORDER);
+		final CursorLoader cursorLoader = new CursorLoader(getActivity(), uri,
+				projection, selection, selectionArgs, sortOrder);
 
 		return cursorLoader;
 	}
@@ -321,9 +424,18 @@ public class TestFragment extends Fragment implements LoaderCallbacks<Cursor> {
 		@Override
 		protected Void doInBackground(Void... params) {
 			Log.d("test", "insertDummyData");
-			insertDummyData();
+			insertPartnerDummyData();
 			Log.d("test", "insertDummyData finished");
 			return null;
 		}
+	}
+
+	@Override
+	public void onItemClick(AdapterView<?> parent, View view, int position,
+			long id) {
+		Log.d(TAG, "onItemClick : " + position);
+		getActivity().getSupportFragmentManager().beginTransaction()
+				.add(R.id.container, new PODetailFragment())
+				.addToBackStack(null).commit();
 	}
 }

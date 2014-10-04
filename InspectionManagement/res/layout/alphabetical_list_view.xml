@@ -30,35 +30,31 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:background="@color/action_bar_bg"
->
-        
-        <TextView 
+        android:padding="3dp" >
+
+        <Button
+            android:id="@+id/log_out_select_partner"
+            style="@style/logoutButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/logout_menu_text"
             android:layout_alignParentRight="true"
-            android:layout_centerVertical="true"
-            android:textStyle="bold"
-            android:layout_marginRight="5dp"
-            />
-        
-        <ImageView 
+            android:text="@string/logout_text" />
+
+        <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/scan"
             android:layout_centerInParent="true"
-            android:layout_marginTop="5dp"
             android:layout_marginBottom="5dp"
-            />
-        
+            android:layout_marginTop="5dp"
+            android:src="@drawable/scan" />
     </RelativeLayout>
 
     <ListView
         android:id="@+id/list_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/container"
         android:layout_above="@id/footer"
+        android:layout_below="@id/container"
         android:fastScrollEnabled="true" >
     </ListView>
 
