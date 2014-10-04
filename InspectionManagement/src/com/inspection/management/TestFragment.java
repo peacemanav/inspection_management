@@ -22,6 +22,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.inspection.management.LoginActivity.PlaceholderFragment;
 import com.inspection.management.db.InspectionMetadata.PartnerTable;
 
 public class TestFragment extends Fragment implements LoaderCallbacks<Cursor> {
@@ -38,9 +39,13 @@ public class TestFragment extends Fragment implements LoaderCallbacks<Cursor> {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		getActivity().getActionBar().show();
+		getActivity().getActionBar().setTitle(R.string.select_partner_title);
+		
 		insertDummyData();
 	}
-
+	
 	private void insertDummyData() {
 
 		// clean old data.
@@ -64,7 +69,7 @@ public class TestFragment extends Fragment implements LoaderCallbacks<Cursor> {
 		// getActivity().getContentResolver().bulkInsert(PartnerTable.CONTENT_URI,
 		// values);
 	}
-
+	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {

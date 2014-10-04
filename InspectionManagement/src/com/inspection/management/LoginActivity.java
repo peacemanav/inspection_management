@@ -31,7 +31,7 @@ public class LoginActivity extends ActionBarActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
 
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.login, menu);
+//        getMenuInflater().inflate(R.menu.login, menu);
         return true;
     }
 
@@ -55,6 +55,13 @@ public class LoginActivity extends ActionBarActivity {
         public PlaceholderFragment() {
         }
 
+        @Override
+        public void onCreate(Bundle savedInstanceState) {
+        	super.onCreate(savedInstanceState);
+        	
+        	getActivity().getActionBar().hide();
+        }
+        
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                 Bundle savedInstanceState) {

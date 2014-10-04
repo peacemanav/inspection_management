@@ -11,18 +11,26 @@
             res/values-vXX/styles.xml, while customizations related to
             backward-compatibility can go here.
         -->
-        <item name="android:listSeparatorTextViewStyle">@style/sectionHeader</item>
     </style>
 
+        <style name="CustomActionBar" parent="@android:style/Widget.Holo.Light.ActionBar">
+        <item name="android:background">@color/action_bar_bg</item>
+        <item name="android:titleTextStyle">@style/CustomActionBarTitleText</item>
+        <item name="android:icon">@android:color/transparent</item>
+    </style>
+
+    <!-- ActionBar title text -->
+    <style name="CustomActionBarTitleText"
+           parent="@android:style/TextAppearance.Holo.Widget.ActionBar.Title">
+        <item name="android:textColor">@android:color/white</item>
+    </style>
+    
     <!-- Application theme. -->
     <style name="AppTheme" parent="AppBaseTheme">
 
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->
         <item name="android:textColorHint">#a4c2e5</item>
-    </style>
-
-    <style name="sectionHeader" parent="@*android:style/Widget.TextView.ListSeparator">
-        <item name="android:drawableBottom">@color/list_seperator_color</item>
+        <item name="android:actionBarStyle">@style/CustomActionBar</item>
     </style>
 
 </resources>
