@@ -1,32 +1,46 @@
 package com.inspection.management;
 
+import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.CharArrayBuffer;
 import android.database.Cursor;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager.LoaderCallbacks;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CursorAdapter;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import com.inspection.management.db.InspectionMetadata.PartnerTable;
 
-public class TestFragment extends Fragment {
+public class TestFragment extends Fragment implements LoaderCallbacks<Cursor> {
 
 	private ListView mListView;
 	private PartnerSearchAdapter mPartnerSearchAdapter;
 
+	private EditText mSearchEditText;
+
+	private int SEARCH_LOADER_ID = 1000;
+
+	private String mSearchText = "";
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
 		insertDummyData();
 	}
-	
+
 	private void insertDummyData() {
 
 		// clean old data.
@@ -44,9 +58,11 @@ public class TestFragment extends Fragment {
 			if (asciiCode == 91) {
 				asciiCode = 65;
 			}
+			getActivity().getContentResolver().insert(PartnerTable.CONTENT_URI,
+					value);
 		}
-		getActivity().getContentResolver().bulkInsert(PartnerTable.CONTENT_URI,
-				values);
+		// getActivity().getContentResolver().bulkInsert(PartnerTable.CONTENT_URI,
+		// values);
 	}
 
 	@Override
@@ -61,6 +77,8 @@ public class TestFragment extends Fragment {
 		super.onViewCreated(view, savedInstanceState);
 
 		mListView = (ListView) view.findViewById(R.id.list_view);
+		mSearchEditText = (EditText) view.findViewById(R.id.search_text);
+		mSearchEditText.addTextChangedListener(mTextWatcher);
 
 		final Cursor cursor = getActivity().getContentResolver().query(
 				PartnerTable.CONTENT_URI, PartnerTableQuery.PROJECTION, null,
@@ -68,12 +86,51 @@ public class TestFragment extends Fragment {
 
 		mPartnerSearchAdapter = new PartnerSearchAdapter(getActivity(), cursor);
 		mListView.setAdapter(mPartnerSearchAdapter);
+		Log.d("test", "onViewCreated");
+	}
+
+	private TextWatcher mTextWatcher = new TextWatcher() {
+
+		@Override
+		public void onTextChanged(CharSequence s, int start, int before,
+				int count) {
+			mSearchText = s.toString();
+			getActivity().getSupportLoaderManager().restartLoader(
+					SEARCH_LOADER_ID, null, TestFragment.this);
+		}
+
+		@Override
+		public void beforeTextChanged(CharSequence s, int start, int count,
+				int after) {
+
+		}
+
+		@Override
+		public void afterTextChanged(Editable s) {
+
+		}
+	};
+
+	@Override
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
+		Log.d("test", "onAttach");
+	}
+
+	@Override
+	public void onActivityCreated(Bundle savedInstanceState) {
+		super.onActivityCreated(savedInstanceState);
+		Log.d("test", "onActivityCreated");
+		getActivity().getSupportLoaderManager().initLoader(SEARCH_LOADER_ID,
+				null, this);
+		// new DummyAskTask().execute();
 	}
 
 	private static class PartnerInfoViewHolder {
 		public TextView separator;
 		public TextView titleView;
 		public CharArrayBuffer titleBuffer = new CharArrayBuffer(128);
+		public MultiFiniteProgressView progressView;
 	}
 
 	private static class PartnerSearchAdapter extends CursorAdapter {
@@ -172,6 +229,8 @@ public class TestFragment extends Fragment {
 			holder.titleView.setText(holder.titleBuffer.data, 0,
 					holder.titleBuffer.sizeCopied);
 
+			holder.progressView.setIndicatorValues(400, 40, 4);
+
 			// /*
 			// * Subtitle
 			// */
@@ -199,6 +258,8 @@ public class TestFragment extends Fragment {
 			PartnerInfoViewHolder holder = new PartnerInfoViewHolder();
 			holder.separator = (TextView) v.findViewById(R.id.separator);
 			holder.titleView = (TextView) v.findViewById(R.id.title);
+			holder.progressView = (MultiFiniteProgressView) v
+					.findViewById(R.id.progress_view);
 
 			v.setTag(holder);
 
@@ -209,8 +270,6 @@ public class TestFragment extends Fragment {
 
 	/**
 	 * Keep query data in one place
-	 * 
-	 * @author Cyril Mottier
 	 */
 	private interface PartnerTableQuery {
 		String[] PROJECTION = { PartnerTable._ID, PartnerTable.PARTNER_NAME,
@@ -218,8 +277,48 @@ public class TestFragment extends Fragment {
 				PartnerTable.TENTATIVE };
 
 		int TITLE = 1;
-		int ALBUM = 2;
 
 		String SORT_ORDER = PartnerTable.PARTNER_NAME + " ASC";
+	}
+
+	@Override
+	public Loader<Cursor> onCreateLoader(int loaderId, Bundle bundle) {
+
+		Log.d("test", "onCreateLoader");
+
+		String selection = null;
+		String[] selectionArgs = null;
+
+		selection = PartnerTable.PARTNER_NAME + " LIKE ?";
+		selectionArgs = new String[] { "%" + mSearchText + "%" };
+
+		final CursorLoader cursorLoader = new CursorLoader(getActivity(),
+				PartnerTable.CONTENT_URI, PartnerTableQuery.PROJECTION,
+				selection, selectionArgs, PartnerTableQuery.SORT_ORDER);
+
+		return cursorLoader;
+	}
+
+	@Override
+	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+		Log.d("test", "onLoadFinished");
+		mPartnerSearchAdapter.changeCursor(cursor);
+	}
+
+	@Override
+	public void onLoaderReset(Loader<Cursor> loader) {
+		Log.d("test", "onLoaderReset");
+		mPartnerSearchAdapter.changeCursor(null);
+	}
+
+	private class DummyAskTask extends AsyncTask<Void, Void, Void> {
+
+		@Override
+		protected Void doInBackground(Void... params) {
+			Log.d("test", "insertDummyData");
+			insertDummyData();
+			Log.d("test", "insertDummyData finished");
+			return null;
+		}
 	}
 }

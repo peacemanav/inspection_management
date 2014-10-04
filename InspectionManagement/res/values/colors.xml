@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bar_green_color">#92c057</color>
+    <color name="bar_yello_color">#ebbe4d</color>
+    <color name="bar_red_color">#ff0000</color>
+    <color name="list_seperator_color">#a5bcdd</color>
+    
+</resources>
