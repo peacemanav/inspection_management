@@ -27,6 +27,7 @@ import android.widget.TextView;
 
 import com.inspection.management.db.InspectionMetadata.CarrierTable;
 import com.inspection.management.db.InspectionMetadata.PartnerTable;
+import com.inspection.management.view.MultiFiniteProgressView;
 
 public class TestFragment extends Fragment implements LoaderCallbacks<Cursor>,
 		OnItemClickListener {
@@ -435,7 +436,18 @@ public class TestFragment extends Fragment implements LoaderCallbacks<Cursor>,
 			long id) {
 		Log.d(TAG, "onItemClick : " + position);
 		getActivity().getSupportFragmentManager().beginTransaction()
-				.add(R.id.container, new PODetailFragment())
+				.add(R.id.container, new PurchaseOrderFragment())
 				.addToBackStack(null).commit();
+	}
+	
+	@Override
+	public void onDestroy() {
+		try {
+			getActivity().getSupportLoaderManager().destroyLoader(
+					mLoaderId);
+		} catch (Exception e) {
+			// do nothing
+		}
+		super.onDestroy();
 	}
 }

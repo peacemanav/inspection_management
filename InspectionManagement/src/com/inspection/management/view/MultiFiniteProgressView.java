@@ -1,4 +1,7 @@
-package com.inspection.management;
+package com.inspection.management.view;
+
+import com.inspection.management.R;
+import com.inspection.management.R.color;
 
 import android.content.Context;
 import android.graphics.Canvas;

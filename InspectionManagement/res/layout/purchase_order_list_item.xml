@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center_vertical"
+    android:minHeight="@dimen/list_item_height"
+    android:orientation="horizontal"
+    android:padding="5dp"
+    android:weightSum="4" >
+
+    <TextView
+        android:id="@+id/purchaseOrderTextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="3"
+        android:text="09486099999"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/purchaseOrderTimeTextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center_horizontal"
+        android:text="12:12"
+        android:textColor="@android:color/darker_gray"
+        android:textSize="18sp" />
+
+</LinearLayout>

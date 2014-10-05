@@ -14,6 +14,7 @@ import android.util.Log;
 
 import com.inspection.management.db.InspectionMetadata.CarrierTable;
 import com.inspection.management.db.InspectionMetadata.PartnerTable;
+import com.inspection.management.db.InspectionMetadata.PurchaseTable;
 
 public class InspectionContentProvider extends ContentProvider {
 
@@ -24,20 +25,29 @@ public class InspectionContentProvider extends ContentProvider {
 	private DatabaseHelper mDatabaseHelper;
 
 	private static UriMatcher sUriMatcher;
-	private static final int PARTNER = 1;
-	private static final int PARTNER_ID = 2;
-	private static final int CARRIER = 3;
-	private static final int CARRIER_ID = 4;
+	private static final int PARTNER 		= 1;
+	private static final int PARTNER_ID 	= 2;
+	private static final int CARRIER 		= 3;
+	private static final int CARRIER_ID 	= 4;
+	private static final int PURCHASE		= 5;
+	private static final int PURCHASE_ID	= 6;
+	
 	{
 		sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
 		sUriMatcher.addURI(InspectionMetadata.AUTHORITY,
 				PartnerTable.TABLE_NAME, PARTNER);
 		sUriMatcher.addURI(InspectionMetadata.AUTHORITY,
 				PartnerTable.TABLE_NAME + "/#", PARTNER_ID);
+		
 		sUriMatcher.addURI(InspectionMetadata.AUTHORITY,
 				CarrierTable.TABLE_NAME, CARRIER);
 		sUriMatcher.addURI(InspectionMetadata.AUTHORITY,
 				CarrierTable.TABLE_NAME + "/#", CARRIER_ID);
+		
+		sUriMatcher.addURI(InspectionMetadata.AUTHORITY,
+				PurchaseTable.TABLE_NAME, PURCHASE);
+		sUriMatcher.addURI(InspectionMetadata.AUTHORITY,
+				PurchaseTable.TABLE_NAME + "/#", PURCHASE_ID);
 	}
 
 	@Override
@@ -60,6 +70,11 @@ public class InspectionContentProvider extends ContentProvider {
 		case CARRIER_ID:
 			tableName = CarrierTable.TABLE_NAME;
 			break;
+		case PURCHASE:
+		case PURCHASE_ID:
+			tableName = PurchaseTable.TABLE_NAME;
+			break;
+			
 
 		default:
 			throw new IllegalArgumentException("Not a valid URI");
@@ -88,7 +103,10 @@ public class InspectionContentProvider extends ContentProvider {
 		case CARRIER_ID:
 			tableName = CarrierTable.TABLE_NAME;
 			break;
-
+		case PURCHASE:
+		case PURCHASE_ID:
+			tableName = PurchaseTable.TABLE_NAME;
+			break;
 		default:
 			throw new IllegalArgumentException("Not a valid URI");
 		}
@@ -125,7 +143,10 @@ public class InspectionContentProvider extends ContentProvider {
 		case CARRIER_ID:
 			tableName = CarrierTable.TABLE_NAME;
 			break;
-
+		case PURCHASE:
+		case PURCHASE_ID:
+			tableName = PurchaseTable.TABLE_NAME;
+			break;
 		default:
 			throw new IllegalArgumentException("Not a valid URI");
 		}
@@ -147,7 +168,10 @@ public class InspectionContentProvider extends ContentProvider {
 		case CARRIER_ID:
 			tableName = CarrierTable.TABLE_NAME;
 			break;
-
+		case PURCHASE:
+		case PURCHASE_ID:
+			tableName = PurchaseTable.TABLE_NAME;
+			break;
 		default:
 			throw new IllegalArgumentException("Not a valid URI");
 		}
@@ -177,6 +201,7 @@ public class InspectionContentProvider extends ContentProvider {
 			try {
 				db.execSQL(getPartnerTableQuery());
 				db.execSQL(getCarrierTableQuery());
+				db.execSQL(getPurchaseOrderTableQuery());
 			} catch (SQLException e) {
 				Log.e(TAG, "onCreate : failed to create parts table");
 			}
@@ -212,6 +237,19 @@ public class InspectionContentProvider extends ContentProvider {
 			builder.append(CarrierTable.ACCEPTED + " INTEGER, ");
 			builder.append(CarrierTable.REJECTED + " INTEGER,");
 			builder.append(CarrierTable.TENTATIVE + " INTEGER);");
+
+			return builder.toString();
+		}
+		
+		private static String getPurchaseOrderTableQuery() {
+			final StringBuilder builder = new StringBuilder();
+
+			builder.append("CREATE TABLE IF NOT EXISTS "
+					+ PurchaseTable.TABLE_NAME + " (");
+			builder.append(PurchaseTable._ID
+					+ " INTEGER PRIMARY KEY AUTOINCREMENT, ");
+			builder.append(PurchaseTable.ORDER_NO + " TEXT, ");
+			builder.append(PurchaseTable.ETA + " TEXT);");
 
 			return builder.toString();
 		}

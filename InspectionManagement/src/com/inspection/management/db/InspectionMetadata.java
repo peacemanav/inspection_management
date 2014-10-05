@@ -33,4 +33,13 @@ public class InspectionMetadata {
 		public static final String REJECTED 		= "rejected";
 		public static final String TENTATIVE 		= "tentative";
 	}
+	
+	public static class PurchaseTable implements BaseColumns {
+		public static final String TABLE_NAME = "purchase";;
+		public static final Uri CONTENT_URI = Uri.parse("content://"
+				+ AUTHORITY + "/" + TABLE_NAME);
+		
+		public static final String ORDER_NO 	= "order_no";
+		public static final String ETA 			= "eta";
+	}
 }

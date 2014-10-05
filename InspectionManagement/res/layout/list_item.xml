@@ -35,7 +35,7 @@
             android:textSize="16sp"
             android:textStyle="bold" />
 
-        <com.inspection.management.MultiFiniteProgressView
+        <com.inspection.management.view.MultiFiniteProgressView
             android:id="@+id/progress_view"
             android:layout_width="0dp"
             android:layout_height="40dp"
