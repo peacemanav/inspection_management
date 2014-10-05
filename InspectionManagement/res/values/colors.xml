@@ -7,6 +7,8 @@
     <color name="action_bar_bg">#305196</color>
     <color name="po_option_text_color">#5b87c5</color>
 
+    <color name="search_partner_highlight_color">#ffd8d8</color>
+    
     <!-- divider color -->
     <color name="divider_line_color">#305196</color>
 </resources>

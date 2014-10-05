@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.database.CharArrayBuffer;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -31,11 +32,12 @@ import com.inspection.management.util.AppUtil;
 import com.inspection.management.view.MultiFiniteProgressView;
 import com.ui.components.ManageActionBarTitle;
 
-public class SelectPartnerCarrierFragment extends Fragment implements LoaderCallbacks<Cursor>,
-		OnItemClickListener, ManageActionBarTitle {
+public class SelectPartnerCarrierFragment extends Fragment implements
+		LoaderCallbacks<Cursor>, OnItemClickListener, ManageActionBarTitle {
 
 	/** TAG. */
-	private static final String TAG = SelectPartnerCarrierFragment.class.getSimpleName();
+	private static final String TAG = SelectPartnerCarrierFragment.class
+			.getSimpleName();
 
 	private ListView mListView;
 
@@ -66,7 +68,7 @@ public class SelectPartnerCarrierFragment extends Fragment implements LoaderCall
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
+
 		updateActionBarTitle();
 	}
 
@@ -97,24 +99,25 @@ public class SelectPartnerCarrierFragment extends Fragment implements LoaderCall
 					null, null, CarrierTableQuery.SORT_ORDER);
 		}
 
-		mPartnerSearchAdapter = new PartnerSearchAdapter(getActivity(), cursor, mCurrentScreen);
+		mPartnerSearchAdapter = new PartnerSearchAdapter(getActivity(), cursor,
+				mCurrentScreen);
 		mListView.setAdapter(mPartnerSearchAdapter);
 		mListView.setOnItemClickListener(this);
 		mListView.setOnScrollListener(mScrollListener);
 		Log.d("test", "onViewCreated");
 	}
-	
+
 	private OnScrollListener mScrollListener = new OnScrollListener() {
-		
+
 		@Override
 		public void onScrollStateChanged(AbsListView view, int scrollState) {
 			AppUtil.hideKeyboard(getActivity(), mSearchEditText);
 		}
-		
+
 		@Override
 		public void onScroll(AbsListView view, int firstVisibleItem,
 				int visibleItemCount, int totalItemCount) {
-			
+
 		}
 	};
 
@@ -189,13 +192,18 @@ public class SelectPartnerCarrierFragment extends Fragment implements LoaderCall
 
 		private final CharArrayBuffer mBuffer = new CharArrayBuffer(128);
 		private int[] mCellStates;
-		
+
 		private int mCurrentScreen;
 
-		public PartnerSearchAdapter(Context context, Cursor cursor, int currentScreen) {
+		int mHighlightColor = Color.CYAN;
+
+		public PartnerSearchAdapter(Context context, Cursor cursor,
+				int currentScreen) {
 			super(context, cursor, false);
 			mCellStates = cursor == null ? null : new int[cursor.getCount()];
 			mCurrentScreen = currentScreen;
+			mHighlightColor = context.getResources().getColor(
+					R.color.search_partner_highlight_color);
 		}
 
 		@Override
@@ -273,21 +281,31 @@ public class SelectPartnerCarrierFragment extends Fragment implements LoaderCall
 			holder.titleView.setText(holder.titleBuffer.data, 0,
 					holder.titleBuffer.sizeCopied);
 
-			holder.progressView.setIndicatorValues(400, 40, 4);
+			int accepted = 0;
+			int rejected = 0;
+			int tentative = 0;
 
-			// /*
-			// * Subtitle
-			// */
-			// holder.subtitleBuffer.setLength(0);
-			// final String album = cursor.getString(PartnerTableQuery.ALBUM);
-			// if (!TextUtils.isEmpty(album)) {
-			// holder.subtitleBuffer.append(album);
-			// final String artist = cursor.getString(PartnerTableQuery.ARTIST);
-			// if (!TextUtils.isEmpty(artist)) {
-			// holder.subtitleBuffer.append(" - ");
-			// holder.subtitleBuffer.append(artist);
-			// }
-			// }
+			if (SCREEN_SELECT_PARTNER == mCurrentScreen) {
+				accepted = cursor.getInt(PartnerTableQuery.ACCEPTED);
+				rejected = cursor.getInt(PartnerTableQuery.REJECTED);
+				tentative = cursor.getInt(PartnerTableQuery.TENTATIVE);
+			} else {
+				accepted = cursor.getInt(CarrierTableQuery.ACCEPTED);
+				rejected = cursor.getInt(CarrierTableQuery.REJECTED);
+				tentative = cursor.getInt(CarrierTableQuery.TENTATIVE);
+			}
+
+			if (rejected > 60) {
+				view
+						.setBackgroundColor(mHighlightColor);
+				holder.separator.setBackgroundColor(Color.WHITE);
+			} else {
+				view
+				.setBackgroundColor(Color.WHITE);
+			}
+
+			holder.progressView.setIndicatorValues(accepted, rejected,
+					tentative);
 		}
 
 		@Override
@@ -321,6 +339,9 @@ public class SelectPartnerCarrierFragment extends Fragment implements LoaderCall
 				PartnerTable.TENTATIVE };
 
 		int TITLE = 1;
+		int ACCEPTED = 2;
+		int REJECTED = 3;
+		int TENTATIVE = 4;
 
 		String SORT_ORDER = PartnerTable.PARTNER_NAME + " ASC";
 	}
@@ -331,6 +352,9 @@ public class SelectPartnerCarrierFragment extends Fragment implements LoaderCall
 				CarrierTable.TENTATIVE };
 
 		int TITLE = 1;
+		int ACCEPTED = 2;
+		int REJECTED = 3;
+		int TENTATIVE = 4;
 
 		String SORT_ORDER = CarrierTable.CARRIER_NAME + " ASC";
 	}
@@ -383,17 +407,16 @@ public class SelectPartnerCarrierFragment extends Fragment implements LoaderCall
 			long id) {
 		Log.d(TAG, "onItemClick : " + position);
 		AppUtil.hideKeyboard(getActivity(), mSearchEditText);
-		
+
 		getActivity().getSupportFragmentManager().beginTransaction()
 				.add(R.id.container, new PurchaseOrderFragment())
 				.addToBackStack(null).commit();
 	}
-	
+
 	@Override
 	public void onDestroy() {
 		try {
-			getActivity().getSupportLoaderManager().destroyLoader(
-					mLoaderId);
+			getActivity().getSupportLoaderManager().destroyLoader(mLoaderId);
 		} catch (Exception e) {
 			// do nothing
 		}
