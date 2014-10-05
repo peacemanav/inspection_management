@@ -3,6 +3,7 @@ package com.inspection.management;
 import org.apache.http.HttpResponse;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager.OnBackStackChangedListener;
@@ -44,7 +45,7 @@ public class InspectionManagementActivity extends ActionBarActivity {
 		// getMenuInflater().inflate(R.menu.login, menu);
 		return true;
 	}
-
+	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle action bar item clicks here. The action bar will
@@ -135,6 +136,7 @@ public class InspectionManagementActivity extends ActionBarActivity {
 		public void testMethod() {
 			AppUtil.insertPartnerDummyData(getActivity());
 			AppUtil.insertCarrierDummyData(getActivity());
+			AppUtil.insertPurchanseOrderDummyData(getActivity());
 		}
 	}
 }
