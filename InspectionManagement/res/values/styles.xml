@@ -48,6 +48,11 @@
         <item name="android:background">@drawable/bg_title</item>
         <item name="android:minHeight">34dp</item>
     </style>
+    
+        <style name="loginTitleTextVeiw" parent="@android:style/Widget.TextView">
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">20sp</item>
+    </style>
 
     <style name="logoutButtonStyle" parent="@android:style/Widget.Button.Small">
         <item name="android:background">@drawable/button</item>

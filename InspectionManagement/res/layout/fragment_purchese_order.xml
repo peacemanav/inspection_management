@@ -21,7 +21,7 @@
             android:background="@drawable/search_edit_text_bg"
             android:drawableLeft="@drawable/ic_action_search"
             android:hint="@string/hint_search_purchase_order"
-            android:inputType="text" />
+            android:inputType="numberDecimal" />
     </LinearLayout>
 
     <LinearLayout

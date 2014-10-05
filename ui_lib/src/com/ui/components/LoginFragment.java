@@ -13,6 +13,7 @@ import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.AsyncTask.Status;
@@ -52,225 +53,247 @@ import com.ui.components.utils.NetworkUtils;
  */
 public abstract class LoginFragment extends Fragment implements OnClickListener {
 
-    private int mThemeRes = R.style.LoginTheme;
+	private int mThemeRes = R.style.LoginTheme;
 
-    protected EditText mUserNameEditText;
-    protected EditText mPasswordditText;
-    protected Button mLogInButton;
+	protected EditText mUserNameEditText;
+	protected EditText mPasswordditText;
+	protected Button mLogInButton;
 
-    protected RelativeLayout mTopPlaceHolder;
-    protected RelativeLayout mBottomPlaceHolder;
+	protected RelativeLayout mTopPlaceHolder;
+	protected RelativeLayout mBottomPlaceHolder;
 
-    private LoginScreenErrorListener mLoginScreenErrorListener;
+	private LoginScreenErrorListener mLoginScreenErrorListener;
 
-    private LoginNetworkEssentials mLoginNetworkEssentials;
+	private LoginNetworkEssentials mLoginNetworkEssentials;
 
-    private LoginAsyncTask mLoginAsyncTask;
+	private LoginAsyncTask mLoginAsyncTask;
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-            Bundle savedInstanceState) {
+	private ProgressDialog mProgressDialog;
 
-        if (mThemeRes != -1) {
-            // create ContextThemeWrapper from the original Activity Context
-            // with the custom theme
-            final Context contextThemeWrapper = new ContextThemeWrapper(
-                    getActivity(), mThemeRes);
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+			Bundle savedInstanceState) {
 
-            // clone the inflater using the ContextThemeWrapper
-            inflater = inflater.cloneInContext(contextThemeWrapper);
-        }
+		if (mThemeRes != -1) {
+			// create ContextThemeWrapper from the original Activity Context
+			// with the custom theme
+			final Context contextThemeWrapper = new ContextThemeWrapper(
+					getActivity(), mThemeRes);
 
-        return inflater.inflate(R.layout.login_ui_form, container, false);
-    }
+			// clone the inflater using the ContextThemeWrapper
+			inflater = inflater.cloneInContext(contextThemeWrapper);
+		}
 
-    @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-        mUserNameEditText = (EditText) view
-                .findViewById(R.id.user_name_edittext);
-        mPasswordditText = (EditText) view.findViewById(R.id.password_edittext);
-        mLogInButton = (Button) view.findViewById(R.id.login_button);
-        mLogInButton.setOnClickListener(this);
+		return inflater.inflate(R.layout.login_ui_form, container, false);
+	}
 
-        mTopPlaceHolder = (RelativeLayout) view
-                .findViewById(R.id.login_top_placeholder);
-        mBottomPlaceHolder = (RelativeLayout) view
-                .findViewById(R.id.login_bottom_placeholder);
+	@Override
+	public void onViewCreated(View view, Bundle savedInstanceState) {
+		mUserNameEditText = (EditText) view
+				.findViewById(R.id.user_name_edittext);
+		mPasswordditText = (EditText) view.findViewById(R.id.password_edittext);
+		mLogInButton = (Button) view.findViewById(R.id.login_button);
+		mLogInButton.setOnClickListener(this);
 
-        initDefaultValues();
-    }
+		mTopPlaceHolder = (RelativeLayout) view
+				.findViewById(R.id.login_top_placeholder);
+		mBottomPlaceHolder = (RelativeLayout) view
+				.findViewById(R.id.login_bottom_placeholder);
 
-    public void initDefaultValues() {
-        setLoginScreenErrorListener(new DefalutErrorScreenListener());
-    }
+		initDefaultValues();
+	}
 
-    @Override
-    public void onClick(View v) {
+	public void initDefaultValues() {
+		setLoginScreenErrorListener(new DefalutErrorScreenListener());
+	}
 
-        if (R.id.login_button == v.getId()) {
-            handleLogin();
-        }
-    }
+	@Override
+	public void onClick(View v) {
 
-    private void handleLogin() {
-        if (TextUtils.isEmpty(mUserNameEditText.getText())) {
-            reportError(LoginFailedErrorType.USER_NAME_MISSING);
-            return;
-        }
+		if (R.id.login_button == v.getId()) {
+			handleLogin();
+		}
+	}
 
-        if (TextUtils.isEmpty(mPasswordditText.getText())) {
-            reportError(LoginFailedErrorType.PASSWORD_MISSING);
-            return;
-        }
-        mLoginAsyncTask = new LoginAsyncTask();
-        mLoginAsyncTask.execute();
-    }
+	private void handleLogin() {
+		if (TextUtils.isEmpty(mUserNameEditText.getText())) {
+			reportError(LoginFailedErrorType.USER_NAME_MISSING);
+			return;
+		}
 
-    @Override
-    public void onDetach() {
+		if (TextUtils.isEmpty(mPasswordditText.getText())) {
+			reportError(LoginFailedErrorType.PASSWORD_MISSING);
+			return;
+		}
+		mLoginAsyncTask = new LoginAsyncTask();
+		mLoginAsyncTask.execute();
+	}
 
-        if (mLoginAsyncTask != null
-                && mLoginAsyncTask.getStatus() == Status.RUNNING) {
-            mLoginAsyncTask.cancel(true);
-        }
-        super.onDetach();
-    }
+	@Override
+	public void onDetach() {
 
-    public interface LoginScreenErrorListener {
+		if (mLoginAsyncTask != null
+				&& mLoginAsyncTask.getStatus() == Status.RUNNING) {
+			mLoginAsyncTask.cancel(true);
+		}
+		super.onDetach();
+	}
 
-        public enum LoginFailedErrorType {
-            USER_NAME_MISSING, PASSWORD_MISSING, LOGIN_FAILED, POOR_INTERNET_CONNECTION, LOGIN_CANCELLED
-        }
+	public interface LoginScreenErrorListener {
 
-        public void onLoginFailed(LoginFailedErrorType errorType);
-    }
+		public enum LoginFailedErrorType {
+			USER_NAME_MISSING, PASSWORD_MISSING, LOGIN_FAILED, POOR_INTERNET_CONNECTION, LOGIN_CANCELLED
+		}
 
-    public abstract void onLoginSuccess(HttpResponse httpResponse);
+		public void onLoginFailed(LoginFailedErrorType errorType);
+	}
 
-    public abstract class LoginNetworkEssentials {
+	public abstract void onLoginSuccess(HttpResponse httpResponse);
 
-        abstract public String getNetworkUri();
+	// TODO this method should be removed, it has been to enter dummy.
+	abstract public void testMethod();
 
-        abstract public StringEntity getDataToPost();
-    }
+	public abstract class LoginNetworkEssentials {
 
-    public class DefalutErrorScreenListener implements LoginScreenErrorListener {
+		abstract public String getNetworkUri();
 
-        @Override
-        public void onLoginFailed(LoginFailedErrorType errorType) {
+		abstract public StringEntity getDataToPost();
+	}
 
-            if (LoginFailedErrorType.USER_NAME_MISSING == errorType) {
-                showDialog(R.string.error_user_name_missing);
-            } else if (LoginFailedErrorType.PASSWORD_MISSING == errorType) {
-                showDialog(R.string.error_password_missing);
-            } else if (LoginFailedErrorType.POOR_INTERNET_CONNECTION == errorType) {
-                showDialog(R.string.error_bad_internet);
-            } else if (LoginFailedErrorType.LOGIN_FAILED == errorType) {
-                showDialog(R.string.error_login_failed);
-            } else if (LoginFailedErrorType.LOGIN_CANCELLED == errorType) {
-                showDialog(R.string.error_login_cancelled);
-            }
-        }
+	public class DefalutErrorScreenListener implements LoginScreenErrorListener {
 
-        private void showDialog(final int stringRes) {
-            final AlertDialog.Builder builder = new AlertDialog.Builder(
-                    getActivity());
-            builder.setTitle(R.string.error_title).setMessage(stringRes);
-            builder.setPositiveButton(R.string.button_ok, null);
+		@Override
+		public void onLoginFailed(LoginFailedErrorType errorType) {
 
-            AlertDialog dialog = builder.create();
-            dialog.show();
-        }
-    }
+			if (LoginFailedErrorType.USER_NAME_MISSING == errorType) {
+				showDialog(R.string.error_user_name_missing);
+			} else if (LoginFailedErrorType.PASSWORD_MISSING == errorType) {
+				showDialog(R.string.error_password_missing);
+			} else if (LoginFailedErrorType.POOR_INTERNET_CONNECTION == errorType) {
+				showDialog(R.string.error_bad_internet);
+			} else if (LoginFailedErrorType.LOGIN_FAILED == errorType) {
+				showDialog(R.string.error_login_failed);
+			} else if (LoginFailedErrorType.LOGIN_CANCELLED == errorType) {
+				showDialog(R.string.error_login_cancelled);
+			}
+		}
 
-    /**
-     * This should be called inside onCreate otherwise it will late to apply
-     * theme.
-     * 
-     * @param themeRes
-     */
-    public void setTheme(int themeRes) {
-        mThemeRes = themeRes;
-    }
+		private void showDialog(final int stringRes) {
+			final AlertDialog.Builder builder = new AlertDialog.Builder(
+					getActivity());
+			builder.setTitle(R.string.error_title).setMessage(stringRes);
+			builder.setPositiveButton(R.string.button_ok, null);
 
-    public void setLoginScreenErrorListener(
-            LoginScreenErrorListener errorListener) {
-        mLoginScreenErrorListener = errorListener;
-    }
+			AlertDialog dialog = builder.create();
+			dialog.show();
+		}
+	}
 
-    public class LoginAsyncTask extends AsyncTask<Void, Void, HttpResponse> {
+	/**
+	 * This should be called inside onCreate otherwise it will late to apply
+	 * theme.
+	 * 
+	 * @param themeRes
+	 */
+	public void setTheme(int themeRes) {
+		mThemeRes = themeRes;
+	}
 
-        private boolean loginSuccess = false;
-        private LoginFailedErrorType mErrorType;
+	public void setLoginScreenErrorListener(
+			LoginScreenErrorListener errorListener) {
+		mLoginScreenErrorListener = errorListener;
+	}
 
-        @Override
-        protected HttpResponse doInBackground(Void... params) {
+	public class LoginAsyncTask extends AsyncTask<Void, Void, HttpResponse> {
 
-            if (mLoginNetworkEssentials == null) {
-                loginSuccess = true;
-                return null;
-            }
+		private boolean loginSuccess = false;
+		private LoginFailedErrorType mErrorType;
 
-            if (!NetworkUtils.isNetworkAvailable(getActivity())) {
-                mErrorType = LoginFailedErrorType.POOR_INTERNET_CONNECTION;
-                return null;
-            }
+		@Override
+		protected void onPreExecute() {
+			mProgressDialog = new ProgressDialog(getActivity());
+			mProgressDialog.setTitle(R.string.progress_text_title_login);
+			mProgressDialog.setCanceledOnTouchOutside(false);
+			mProgressDialog.setCancelable(false);
 
-            HttpParams httpParameters = new BasicHttpParams();
-            // Set the timeout in milliseconds until a connection is
-            // established.
-            // The default value is zero, that means the timeout is not used.
-            final int timeoutConnection = 20 * 1000;
-            HttpConnectionParams.setConnectionTimeout(httpParameters,
-                    timeoutConnection);
-            // Set the default socket timeout (SO_TIMEOUT)
-            // in milliseconds which is the timeout for waiting for data.
-            final int timeoutSocket = 5000;
-            HttpConnectionParams.setSoTimeout(httpParameters, timeoutSocket);
-            final HttpClient httpClient = new DefaultHttpClient(httpParameters);
+			mProgressDialog.show();
+		}
 
-            final String loginUrl = mLoginNetworkEssentials.getNetworkUri();
+		@Override
+		protected HttpResponse doInBackground(Void... params) {
 
-            final HttpPost httpPost = new HttpPost(loginUrl);
-            httpPost.setHeader("Content-type", "application/json");
+			// TODO dummy call, following method, should be removed
+			testMethod();
+			
+			if (mLoginNetworkEssentials == null) {
+				loginSuccess = true;
+				return null;
+			}
 
-            httpPost.setEntity(mLoginNetworkEssentials.getDataToPost());
+			if (!NetworkUtils.isNetworkAvailable(getActivity())) {
+				mErrorType = LoginFailedErrorType.POOR_INTERNET_CONNECTION;
+				return null;
+			}
 
-            // Execute HTTP Post Request
-            HttpResponse response = null;
-            try {
-                response = httpClient.execute(httpPost);
-                loginSuccess = true;
-            } catch (ClientProtocolException e) {
-                mErrorType = LoginFailedErrorType.LOGIN_FAILED;
-                e.printStackTrace();
-            } catch (IOException e) {
-                mErrorType = LoginFailedErrorType.LOGIN_FAILED;
-                e.printStackTrace();
-            }
+			HttpParams httpParameters = new BasicHttpParams();
+			// Set the timeout in milliseconds until a connection is
+			// established.
+			// The default value is zero, that means the timeout is not used.
+			final int timeoutConnection = 20 * 1000;
+			HttpConnectionParams.setConnectionTimeout(httpParameters,
+					timeoutConnection);
+			// Set the default socket timeout (SO_TIMEOUT)
+			// in milliseconds which is the timeout for waiting for data.
+			final int timeoutSocket = 5000;
+			HttpConnectionParams.setSoTimeout(httpParameters, timeoutSocket);
+			final HttpClient httpClient = new DefaultHttpClient(httpParameters);
 
-            return response;
-        }
+			final String loginUrl = mLoginNetworkEssentials.getNetworkUri();
 
-        @Override
-        protected void onPostExecute(HttpResponse result) {
+			final HttpPost httpPost = new HttpPost(loginUrl);
+			httpPost.setHeader("Content-type", "application/json");
 
-            if (isCancelled()) {
-                reportError(LoginFailedErrorType.LOGIN_CANCELLED);
-                return;
-            }
+			httpPost.setEntity(mLoginNetworkEssentials.getDataToPost());
 
-            if (loginSuccess) {
-                onLoginSuccess(result);
-            } else {
-                reportError(mErrorType);
-            }
-        }
-    }
+			// Execute HTTP Post Request
+			HttpResponse response = null;
+			try {
+				response = httpClient.execute(httpPost);
+				loginSuccess = true;
+			} catch (ClientProtocolException e) {
+				mErrorType = LoginFailedErrorType.LOGIN_FAILED;
+				e.printStackTrace();
+			} catch (IOException e) {
+				mErrorType = LoginFailedErrorType.LOGIN_FAILED;
+				e.printStackTrace();
+			}
 
-    public void reportError(LoginFailedErrorType errorType) {
-        if (mLoginScreenErrorListener != null) {
-            mLoginScreenErrorListener.onLoginFailed(errorType);
-        }
-    }
+			return response;
+		}
+
+		@Override
+		protected void onPostExecute(HttpResponse result) {
+
+			if (mProgressDialog != null && mProgressDialog.isShowing()) {
+				mProgressDialog.dismiss();
+			}
+
+			if (isCancelled()) {
+				reportError(LoginFailedErrorType.LOGIN_CANCELLED);
+				return;
+			}
+
+			if (loginSuccess) {
+				onLoginSuccess(result);
+			} else {
+				reportError(mErrorType);
+			}
+		}
+	}
+
+	public void reportError(LoginFailedErrorType errorType) {
+		if (mLoginScreenErrorListener != null) {
+			mLoginScreenErrorListener.onLoginFailed(errorType);
+		}
+	}
 }

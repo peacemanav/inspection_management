@@ -12,4 +12,8 @@
     <string name="error_password_missing">Password is missing</string>
     <string name="error_bad_internet">Internet connectivity is really bad, try again</string>
 
+    <!-- progress texts -->
+    <string name="progress_text_title_login">Login</string>
+    <string name="progress_text_title_description">Please wait, while you log-in to system</string>
+
 </resources>

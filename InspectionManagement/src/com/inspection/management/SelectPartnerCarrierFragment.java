@@ -1,12 +1,10 @@
 package com.inspection.management;
 
 import android.app.Activity;
-import android.content.ContentValues;
 import android.content.Context;
 import android.database.CharArrayBuffer;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
@@ -18,6 +16,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
+import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.CursorAdapter;
@@ -27,13 +27,15 @@ import android.widget.TextView;
 
 import com.inspection.management.db.InspectionMetadata.CarrierTable;
 import com.inspection.management.db.InspectionMetadata.PartnerTable;
+import com.inspection.management.util.AppUtil;
 import com.inspection.management.view.MultiFiniteProgressView;
+import com.ui.components.ManageActionBarTitle;
 
-public class TestFragment extends Fragment implements LoaderCallbacks<Cursor>,
-		OnItemClickListener {
+public class SelectPartnerCarrierFragment extends Fragment implements LoaderCallbacks<Cursor>,
+		OnItemClickListener, ManageActionBarTitle {
 
 	/** TAG. */
-	private static final String TAG = TestFragment.class.getSimpleName();
+	private static final String TAG = SelectPartnerCarrierFragment.class.getSimpleName();
 
 	private ListView mListView;
 
@@ -53,78 +55,19 @@ public class TestFragment extends Fragment implements LoaderCallbacks<Cursor>,
 
 	private int mCurrentScreen = SCREEN_SELECT_PARTNER;
 
-	public TestFragment() {
+	public SelectPartnerCarrierFragment() {
 
 	}
 
-	public TestFragment(int screen) {
+	public SelectPartnerCarrierFragment(int screen) {
 		mCurrentScreen = screen;
 	}
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
-		getActivity().getActionBar().show();
-		if (SCREEN_SELECT_PARTNER == mCurrentScreen) {
-			mLoaderId = SEARCH_PARTNER_LOADER_ID;
-			getActivity().getActionBar()
-					.setTitle(R.string.select_partner_title);
-			insertPartnerDummyData();
-		} else {
-			mLoaderId = SEARCH_CARRIER_LOADER_ID;
-			getActivity().getActionBar()
-					.setTitle(R.string.select_carrier_title);
-			insertCarrierDummyData();
-		}
-	}
-
-	private void insertPartnerDummyData() {
-
-		// clean old data.
-		getActivity().getContentResolver().delete(PartnerTable.CONTENT_URI,
-				null, null);
-
-		final ContentValues[] values = new ContentValues[52];
-		int asciiCode = 65;
-		for (int i = 0; i < values.length; i++) {
-			final ContentValues value = new ContentValues();
-			value.put(PartnerTable.PARTNER_NAME, (char) asciiCode
-					+ " some random text");
-			values[i] = value;
-			asciiCode++;
-			if (asciiCode == 91) {
-				asciiCode = 65;
-			}
-			// getActivity().getContentResolver().insert(PartnerTable.CONTENT_URI,
-			// value);
-		}
-		getActivity().getContentResolver().bulkInsert(PartnerTable.CONTENT_URI,
-				values);
-	}
-
-	private void insertCarrierDummyData() {
-
-		// clean old data.
-		getActivity().getContentResolver().delete(CarrierTable.CONTENT_URI,
-				null, null);
-
-		final ContentValues[] values = new ContentValues[52];
-		int asciiCode = 65;
-		for (int i = 0; i < values.length; i++) {
-			final ContentValues value = new ContentValues();
-			value.put(CarrierTable.CARRIER_NAME, (char) asciiCode
-					+ " some random text");
-			values[i] = value;
-			asciiCode++;
-			if (asciiCode == 91) {
-				asciiCode = 65;
-			}
-			getActivity().getContentResolver().insert(CarrierTable.CONTENT_URI,
-					value);
-		}
-		// getActivity().getContentResolver().bulkInsert(PartnerTable.CONTENT_URI,
-		// values);
+		
+		updateActionBarTitle();
 	}
 
 	@Override
@@ -157,8 +100,23 @@ public class TestFragment extends Fragment implements LoaderCallbacks<Cursor>,
 		mPartnerSearchAdapter = new PartnerSearchAdapter(getActivity(), cursor, mCurrentScreen);
 		mListView.setAdapter(mPartnerSearchAdapter);
 		mListView.setOnItemClickListener(this);
+		mListView.setOnScrollListener(mScrollListener);
 		Log.d("test", "onViewCreated");
 	}
+	
+	private OnScrollListener mScrollListener = new OnScrollListener() {
+		
+		@Override
+		public void onScrollStateChanged(AbsListView view, int scrollState) {
+			AppUtil.hideKeyboard(getActivity(), mSearchEditText);
+		}
+		
+		@Override
+		public void onScroll(AbsListView view, int firstVisibleItem,
+				int visibleItemCount, int totalItemCount) {
+			
+		}
+	};
 
 	private void doSearchTextSettings() {
 		if (SCREEN_SELECT_CARRIER == mCurrentScreen) {
@@ -173,7 +131,7 @@ public class TestFragment extends Fragment implements LoaderCallbacks<Cursor>,
 				int count) {
 			mSearchText = s.toString();
 			getActivity().getSupportLoaderManager().restartLoader(mLoaderId,
-					null, TestFragment.this);
+					null, SelectPartnerCarrierFragment.this);
 		}
 
 		@Override
@@ -420,21 +378,12 @@ public class TestFragment extends Fragment implements LoaderCallbacks<Cursor>,
 		mPartnerSearchAdapter.changeCursor(null);
 	}
 
-	private class DummyAskTask extends AsyncTask<Void, Void, Void> {
-
-		@Override
-		protected Void doInBackground(Void... params) {
-			Log.d("test", "insertDummyData");
-			insertPartnerDummyData();
-			Log.d("test", "insertDummyData finished");
-			return null;
-		}
-	}
-
 	@Override
 	public void onItemClick(AdapterView<?> parent, View view, int position,
 			long id) {
 		Log.d(TAG, "onItemClick : " + position);
+		AppUtil.hideKeyboard(getActivity(), mSearchEditText);
+		
 		getActivity().getSupportFragmentManager().beginTransaction()
 				.add(R.id.container, new PurchaseOrderFragment())
 				.addToBackStack(null).commit();
@@ -449,5 +398,19 @@ public class TestFragment extends Fragment implements LoaderCallbacks<Cursor>,
 			// do nothing
 		}
 		super.onDestroy();
+	}
+
+	@Override
+	public void updateActionBarTitle() {
+		getActivity().getActionBar().show();
+		if (SCREEN_SELECT_PARTNER == mCurrentScreen) {
+			mLoaderId = SEARCH_PARTNER_LOADER_ID;
+			getActivity().getActionBar()
+					.setTitle(R.string.select_partner_title);
+		} else {
+			mLoaderId = SEARCH_CARRIER_LOADER_ID;
+			getActivity().getActionBar()
+					.setTitle(R.string.select_carrier_title);
+		}
 	}
 }

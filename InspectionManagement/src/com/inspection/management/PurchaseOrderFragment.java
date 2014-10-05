@@ -1,9 +1,7 @@
 package com.inspection.management;
 
 import java.util.List;
-import java.util.Random;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.database.CharArrayBuffer;
 import android.database.Cursor;
@@ -19,6 +17,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
+import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
@@ -28,10 +28,13 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.inspection.management.db.InspectionMetadata.PurchaseTable;
+import com.inspection.management.util.AppUtil;
+import com.ui.components.ManageActionBarTitle;
 
 //TODO: Cursor used is of PartenerTable, was only for testing, Need to implement when PurchaseTable is ready
 public class PurchaseOrderFragment extends Fragment implements
-		LoaderCallbacks<Cursor>, OnItemClickListener, OnClickListener {
+		LoaderCallbacks<Cursor>, OnItemClickListener, OnClickListener,
+		ManageActionBarTitle {
 
 	protected static final int SEARCH_PURCHSE_ORDER_LOADER_ID = 500;
 	private ListView mOrderListView;
@@ -49,39 +52,7 @@ public class PurchaseOrderFragment extends Fragment implements
 		super.onCreate(savedInstanceState);
 		setRetainInstance(true);
 		
-		insertPurchanseOrderDummyData();
-	}
-	
-	private void insertPurchanseOrderDummyData() {
-
-		// clean old data.
-		getActivity().getContentResolver().delete(PurchaseTable.CONTENT_URI,
-				null, null);
-
-		final ContentValues[] values = new ContentValues[5];
-		for (int i = 0; i < values.length; i++) {
-			final ContentValues value = new ContentValues();
-			value.put(PurchaseTable.ORDER_NO, String.valueOf(randInt(123456, 999999)));
-			value.put(PurchaseTable.ETA, "12.45");
-			values[i] = value;
-//			 getActivity().getContentResolver().insert(PurchaseTable.CONTENT_URI,
-//			 value);
-		}
-		getActivity().getContentResolver().bulkInsert(PurchaseTable.CONTENT_URI,
-				values);
-	}
-	
-	public static int randInt(int min, int max) {
-
-	    // NOTE: Usually this should be a field rather than a method
-	    // variable so that it is not re-seeded every call.
-	    Random rand = new Random();
-
-	    // nextInt is normally exclusive of the top value,
-	    // so add 1 to make it inclusive
-	    int randomNum = rand.nextInt((max - min) + 1) + min;
-
-	    return randomNum;
+		updateActionBarTitle();
 	}
 
 	@Override
@@ -100,7 +71,22 @@ public class PurchaseOrderFragment extends Fragment implements
 		mCancelButton.setOnClickListener(this);
 		mSearchEditText.addTextChangedListener(mTextWatcher);
 		mOrderListView.setOnItemClickListener(this);
+		mOrderListView.setOnScrollListener(mScrollListener);
 	}
+
+	private OnScrollListener mScrollListener = new OnScrollListener() {
+
+		@Override
+		public void onScrollStateChanged(AbsListView view, int scrollState) {
+			AppUtil.hideKeyboard(getActivity(), mSearchEditText);
+		}
+
+		@Override
+		public void onScroll(AbsListView view, int firstVisibleItem,
+				int visibleItemCount, int totalItemCount) {
+
+		}
+	};
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
@@ -211,10 +197,11 @@ public class PurchaseOrderFragment extends Fragment implements
 
 	// TODO: Create projection for purchase order table
 	private interface PurchaseOrderTableQuery {
-		final String[] PROJECTION = { PurchaseTable._ID, PurchaseTable.ORDER_NO, PurchaseTable.ETA };
+		final String[] PROJECTION = { PurchaseTable._ID,
+				PurchaseTable.ORDER_NO, PurchaseTable.ETA };
 
-		int ORDER_NO 	= 1;
-		int ETA 		= 2;
+		int ORDER_NO = 1;
+		int ETA = 2;
 
 		final String SORT_ORDER = PurchaseTable.ORDER_NO + " ASC";
 	}
@@ -246,9 +233,11 @@ public class PurchaseOrderFragment extends Fragment implements
 					holder.orderNoBuffer);
 			cursor.copyStringToBuffer(PurchaseOrderTableQuery.ETA,
 					holder.etaBuffer);
-			
-			holder.mOrderNumberTextView.setText(holder.orderNoBuffer.data, 0, holder.orderNoBuffer.sizeCopied);
-			holder.mOrderTimeTextView.setText(holder.etaBuffer.data, 0, holder.etaBuffer.sizeCopied);
+
+			holder.mOrderNumberTextView.setText(holder.orderNoBuffer.data, 0,
+					holder.orderNoBuffer.sizeCopied);
+			holder.mOrderTimeTextView.setText(holder.etaBuffer.data, 0,
+					holder.etaBuffer.sizeCopied);
 		}
 
 		@Override
@@ -270,12 +259,18 @@ public class PurchaseOrderFragment extends Fragment implements
 	public void onItemClick(AdapterView<?> parent, View view, int position,
 			long id) {
 		// TODO: Get the purchase order number pass to PODetailFragment
+		AppUtil.hideKeyboard(getActivity(), mSearchEditText);
 		getActivity()
 				.getSupportFragmentManager()
 				.beginTransaction()
 				.add(R.id.container,
 						PODetailFragment.newInstance("PO #" + position))
 				.addToBackStack(null).commit();
+	}
+
+	@Override
+	public void updateActionBarTitle() {
+		getActivity().getActionBar().setTitle("A & Z LLC");
 	}
 
 	@Override

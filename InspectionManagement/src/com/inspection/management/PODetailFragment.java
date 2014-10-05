@@ -3,6 +3,9 @@ package com.inspection.management;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.inspection.management.util.AppUtil;
+import com.ui.components.ManageActionBarTitle;
+
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -17,7 +20,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class PODetailFragment extends Fragment implements OnClickListener {
+public class PODetailFragment extends Fragment implements OnClickListener, ManageActionBarTitle {
 
 	private static final String PO_NUMBER = "po_number";
 
@@ -44,8 +47,7 @@ public class PODetailFragment extends Fragment implements OnClickListener {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
-		getActivity().getActionBar().setTitle("A & Z LLC");
+		updateActionBarTitle();
 	}
 
 	@Override
@@ -128,7 +130,7 @@ public class PODetailFragment extends Fragment implements OnClickListener {
 	
 	private void attachSelectCarrierFragment() {
 		getActivity().getSupportFragmentManager().beginTransaction()
-		.add(R.id.container, new TestFragment(TestFragment.SCREEN_SELECT_CARRIER))
+		.add(R.id.container, new SelectPartnerCarrierFragment(SelectPartnerCarrierFragment.SCREEN_SELECT_CARRIER))
 		.addToBackStack(null).commit();
 	}
 
@@ -222,5 +224,10 @@ public class PODetailFragment extends Fragment implements OnClickListener {
 		@Override
 		public void onNothingSelected(AdapterView<?> arg0) {
 		}
+	}
+
+	@Override
+	public void updateActionBarTitle() {
+		getActivity().getActionBar().setTitle("A & Z LLC");
 	}
 }
