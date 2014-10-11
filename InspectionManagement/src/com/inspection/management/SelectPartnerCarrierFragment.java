@@ -1,7 +1,10 @@
 package com.inspection.management;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.database.CharArrayBuffer;
 import android.database.Cursor;
 import android.graphics.Color;
@@ -12,10 +15,12 @@ import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
@@ -23,11 +28,16 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.CursorAdapter;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
 import com.inspection.management.db.InspectionMetadata.CarrierTable;
 import com.inspection.management.db.InspectionMetadata.PartnerTable;
+import com.inspection.management.scanner.BarCodeScannerActivity;
 import com.inspection.management.util.AppUtil;
 import com.inspection.management.view.MultiFiniteProgressView;
 import com.ui.components.ManageActionBarTitle;
@@ -40,6 +50,7 @@ public class SelectPartnerCarrierFragment extends Fragment implements
 			.getSimpleName();
 
 	private ListView mListView;
+	private ImageView mScanCodeButton;
 
 	private PartnerSearchAdapter mPartnerSearchAdapter;
 
@@ -86,6 +97,9 @@ public class SelectPartnerCarrierFragment extends Fragment implements
 		mListView = (ListView) view.findViewById(R.id.list_view);
 		mSearchEditText = (EditText) view.findViewById(R.id.search_text);
 		mSearchEditText.addTextChangedListener(mTextWatcher);
+		mScanCodeButton = (ImageView) view.findViewById(R.id.code_scan_button);
+		mScanCodeButton.setOnClickListener(mClickListener);
+
 		doSearchTextSettings();
 
 		Cursor cursor = null;
@@ -162,6 +176,7 @@ public class SelectPartnerCarrierFragment extends Fragment implements
 		getActivity().getSupportLoaderManager().initLoader(mLoaderId, null,
 				this);
 		// new DummyAskTask().execute();
+
 	}
 
 	private static class PartnerInfoViewHolder {
@@ -296,12 +311,10 @@ public class SelectPartnerCarrierFragment extends Fragment implements
 			}
 
 			if (rejected > 60) {
-				view
-						.setBackgroundColor(mHighlightColor);
+				view.setBackgroundColor(mHighlightColor);
 				holder.separator.setBackgroundColor(Color.WHITE);
 			} else {
-				view
-				.setBackgroundColor(Color.WHITE);
+				view.setBackgroundColor(Color.WHITE);
 			}
 
 			holder.progressView.setIndicatorValues(accepted, rejected,
@@ -435,5 +448,85 @@ public class SelectPartnerCarrierFragment extends Fragment implements
 			getActivity().getActionBar()
 					.setTitle(R.string.select_carrier_title);
 		}
+	}
+
+	private OnClickListener mClickListener = new OnClickListener() {
+
+		@Override
+		public void onClick(View v) {
+			switch (v.getId()) {
+			case R.id.code_scan_button:
+				// start Scanner activity
+				scanCode();
+				break;
+
+			default:
+				break;
+			}
+		}
+	};
+
+	private void scanCode() {
+		Intent scannerIntent = new Intent(getActivity(),
+				BarCodeScannerActivity.class);
+		setTargetFragment(SelectPartnerCarrierFragment.this, 1111);
+		startActivityForResult(scannerIntent, 1111);
+	}
+
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+		// IntentResult result =
+		// IntentIntegrator.parseActivityResult(requestCode,
+		// resultCode, intent);
+
+		String contents = null;
+		String poNumber = null;
+		if (intent != null) {
+			contents = intent
+					.getStringExtra(BarCodeScannerActivity.EXTRA_SCAN_DATA);
+			poNumber = intent
+					.getStringExtra(BarCodeScannerActivity.EXTRA_PO_NUMBER);
+		}
+
+		handleResult(poNumber);
+
+		if (contents != null) {
+			showDialog("Scanned", contents);
+		} else {
+			showDialog(getString(R.string.scan_code_error_title), "Error");
+		}
+	}
+
+	private void handleResult(final String orderNumber) {
+		// TODO:
+		if (!TextUtils.isEmpty(orderNumber)) {
+			// Close this activity and go to next screen
+			getActivity()
+					.getSupportFragmentManager()
+					.beginTransaction()
+					.add(R.id.container,
+							PODetailFragment.newInstance(orderNumber))
+					.addToBackStack(null).commit();
+		} else {
+			showDialog(getString(R.string.scan_code_error_title),
+					getString(R.string.scan_code_not_found));
+			// show error
+		}
+	}
+
+	private void showDialog(String title, String message) {
+		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+		builder.setTitle(title);
+		builder.setMessage(message);
+		builder.setPositiveButton(getString(R.string.scan_code),
+				new DialogInterface.OnClickListener() {
+
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						scanCode();
+					}
+				});
+
+		builder.show();
 	}
 }

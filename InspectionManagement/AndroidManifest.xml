@@ -7,6 +7,12 @@
         android:minSdkVersion="11"
         android:targetSdkVersion="19" />
 
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
@@ -14,14 +20,18 @@
         android:theme="@style/AppTheme" >
         <activity
             android:name="com.inspection.management.InspectionManagementActivity"
-            android:label="@string/app_name"
             android:configChanges="orientation|keyboardHidden|"
+            android:label="@string/app_name"
             android:screenOrientation="portrait" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name="com.inspection.management.scanner.BarCodeScannerActivity"
+            android:label="@string/title_activity_bar_code_scanner" >
         </activity>
 
         <provider

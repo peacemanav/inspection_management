@@ -3,6 +3,7 @@ package com.inspection.management;
 import org.apache.http.HttpResponse;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -45,7 +46,7 @@ public class InspectionManagementActivity extends ActionBarActivity {
 		// getMenuInflater().inflate(R.menu.login, menu);
 		return true;
 	}
-	
+
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle action bar item clicks here. The action bar will
@@ -62,8 +63,9 @@ public class InspectionManagementActivity extends ActionBarActivity {
 
 		@Override
 		public void onBackStackChanged() {
-			Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.container);
-			
+			Fragment fragment = getSupportFragmentManager().findFragmentById(
+					R.id.container);
+
 			if (fragment instanceof ManageActionBarTitle) {
 				((ManageActionBarTitle) fragment).updateActionBarTitle();
 			}
@@ -127,7 +129,8 @@ public class InspectionManagementActivity extends ActionBarActivity {
 			// getActivity().getSupportFragmentManager().beginTransaction()
 			// .add(R.id.container, new PartnerFragment()).commit();
 			getActivity().getSupportFragmentManager().beginTransaction()
-					.remove(this).add(R.id.container, new SelectPartnerCarrierFragment())
+					.remove(this)
+					.add(R.id.container, new SelectPartnerCarrierFragment())
 					.commit();
 		}
 
@@ -138,5 +141,10 @@ public class InspectionManagementActivity extends ActionBarActivity {
 			AppUtil.insertCarrierDummyData(getActivity());
 			AppUtil.insertPurchanseOrderDummyData(getActivity());
 		}
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
 	}
 }

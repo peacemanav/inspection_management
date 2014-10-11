@@ -5,11 +5,11 @@
     <string name="hello_world">fuck Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="login_title">Inspection Management</string>
-	<string name="hint_search_partner">Search for Partner</string>
-	<string name="hint_search_carrier">Search for Carrier</string>
+    <string name="hint_search_partner">Search for Partner</string>
+    <string name="hint_search_carrier">Search for Carrier</string>
     <string name="hint_search_purchase_order">Search by purchase order number</string>
-	<string name="select_partner_title">Select Partner</string>
-	<string name="select_carrier_title">Select Carrier</string>
+    <string name="select_partner_title">Select Partner</string>
+    <string name="select_carrier_title">Select Carrier</string>
     <string name="cancel_text"> Cancel </string>
     <string name="logout_text"> Log out </string>
     <string name="carrier_text"> CARRIER </string>
@@ -20,5 +20,9 @@
     <string name="prompt_status">Status</string>
     <string name="purchase_order_num_text"> Purchase Order Number </string>
     <string name="eta_text"> ETA </string>
-	
+    <string name="title_activity_bar_code_scanner">BarCodeScanner</string>
+    <string name="scan_code">Scan</string>
+    <string name="scan_code_not_found">Content not found!\nPlease rescan!</string>
+    <string name="scan_code_error_title">Data not found</string>
+
 </resources>
