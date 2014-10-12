@@ -35,7 +35,7 @@
         </activity>
 
         <provider
-            android:name=".db.InspectionContentProvider"
+            android:name="com.inspection.management.db.InspContentProvider"
             android:authorities="com.inspection.management" >
         </provider>
     </application>

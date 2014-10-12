@@ -8,7 +8,8 @@
         android:id="@+id/container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/edit_text_bg" >
+        android:background="@drawable/edit_text_bg"
+        android:layout_toLeftOf="@+id/side_index" >
 
         <EditText
             android:id="@+id/search_text"
@@ -50,12 +51,26 @@
             android:src="@drawable/scan" />
     </RelativeLayout>
 
+    <LinearLayout
+        android:id="@+id/side_index"
+        android:layout_width="20dip"
+        android:layout_height="fill_parent"
+        android:layout_alignParentRight="true"
+        android:layout_above="@id/footer"
+        android:background="#FFF"
+        android:gravity="center"
+        android:orientation="vertical" >
+    </LinearLayout>
+
     <ListView
         android:id="@+id/list_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_above="@id/footer"
         android:layout_below="@id/container"
+        android:layout_toLeftOf="@id/side_index"
+        android:divider="@color/list_seperator_color"
+        android:dividerHeight="1dp"
         android:fastScrollEnabled="true" >
     </ListView>
 

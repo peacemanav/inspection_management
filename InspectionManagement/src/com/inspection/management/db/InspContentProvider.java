@@ -16,10 +16,10 @@ import com.inspection.management.db.InspectionMetadata.CarrierTable;
 import com.inspection.management.db.InspectionMetadata.PartnerTable;
 import com.inspection.management.db.InspectionMetadata.PurchaseTable;
 
-public class InspectionContentProvider extends ContentProvider {
+public class InspContentProvider extends ContentProvider {
 
 	/** TAG */
-	private static final String TAG = InspectionContentProvider.class
+	private static final String TAG = InspContentProvider.class
 			.getSimpleName();
 
 	private DatabaseHelper mDatabaseHelper;

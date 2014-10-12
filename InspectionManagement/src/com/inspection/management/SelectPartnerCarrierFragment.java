@@ -7,7 +7,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.CharArrayBuffer;
 import android.database.Cursor;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -18,21 +17,25 @@ import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnTouchListener;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.CursorAdapter;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.inspection.management.adapter.AlphabetListAdapter;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 import com.inspection.management.db.InspectionMetadata.CarrierTable;
@@ -40,6 +43,7 @@ import com.inspection.management.db.InspectionMetadata.PartnerTable;
 import com.inspection.management.scanner.BarCodeScannerActivity;
 import com.inspection.management.util.AppUtil;
 import com.inspection.management.view.MultiFiniteProgressView;
+import com.inspection.management.view.OverLineTextView;
 import com.ui.components.ManageActionBarTitle;
 
 public class SelectPartnerCarrierFragment extends Fragment implements
@@ -52,9 +56,11 @@ public class SelectPartnerCarrierFragment extends Fragment implements
 	private ListView mListView;
 	private ImageView mScanCodeButton;
 
-	private PartnerSearchAdapter mPartnerSearchAdapter;
+	private AlphabetListAdapter mAlphabetListAdapter;
 
 	private EditText mSearchEditText;
+
+	private LinearLayout mSideIndexLayout;
 
 	private int SEARCH_PARTNER_LOADER_ID = 1000;
 	private int SEARCH_CARRIER_LOADER_ID = 1001;
@@ -67,6 +73,12 @@ public class SelectPartnerCarrierFragment extends Fragment implements
 	public static int SCREEN_SELECT_CARRIER = 2;
 
 	private int mCurrentScreen = SCREEN_SELECT_PARTNER;
+
+	private int sideIndexHeight;
+	private static float sideIndexX;
+	private static float sideIndexY;
+
+	private int indexListSize;
 
 	public SelectPartnerCarrierFragment() {
 
@@ -97,28 +109,94 @@ public class SelectPartnerCarrierFragment extends Fragment implements
 		mListView = (ListView) view.findViewById(R.id.list_view);
 		mSearchEditText = (EditText) view.findViewById(R.id.search_text);
 		mSearchEditText.addTextChangedListener(mTextWatcher);
+		mSideIndexLayout = (LinearLayout) view.findViewById(R.id.side_index);
 		mScanCodeButton = (ImageView) view.findViewById(R.id.code_scan_button);
 		mScanCodeButton.setOnClickListener(mClickListener);
 
 		doSearchTextSettings();
 
 		Cursor cursor = null;
+		String columnName;
 		if (SCREEN_SELECT_PARTNER == mCurrentScreen) {
 			cursor = getActivity().getContentResolver().query(
 					PartnerTable.CONTENT_URI, PartnerTableQuery.PROJECTION,
 					null, null, PartnerTableQuery.SORT_ORDER);
+			columnName = PartnerTable.PARTNER_NAME;
 		} else {
 			cursor = getActivity().getContentResolver().query(
 					CarrierTable.CONTENT_URI, CarrierTableQuery.PROJECTION,
 					null, null, CarrierTableQuery.SORT_ORDER);
+			columnName = CarrierTable.CARRIER_NAME;
 		}
 
-		mPartnerSearchAdapter = new PartnerSearchAdapter(getActivity(), cursor,
-				mCurrentScreen);
-		mListView.setAdapter(mPartnerSearchAdapter);
+		mAlphabetListAdapter = new AlphabetListAdapter(getActivity(), cursor,
+				columnName);
+		mListView.setAdapter(mAlphabetListAdapter);
+		mListView.setFastScrollEnabled(true);
+		updateSideAlphabetIndex();
+
+		// don't ever forget to do this, either here or in your ListView layout
+		// getListView().setFastScrollEnabled(true);
+
+		// mPartnerSearchAdapter = new PartnerSearchAdapter(getActivity(),
+		// cursor,
+		// mCurrentScreen);
+		// mListView.setAdapter(mPartnerSearchAdapter);
 		mListView.setOnItemClickListener(this);
 		mListView.setOnScrollListener(mScrollListener);
 		Log.d("test", "onViewCreated");
+	}
+
+	
+	private TextView tmpTV;
+	
+	private void updateSideAlphabetIndex() {
+
+		String[] sections = (String[]) mAlphabetListAdapter.getSections();
+		mSideIndexLayout.removeAllViews();
+		for (String section : sections) {
+			tmpTV = new OverLineTextView(getActivity());
+			tmpTV.setText(section);
+			tmpTV.setGravity(Gravity.CENTER);
+			tmpTV.setTextSize(12);
+			LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+					ViewGroup.LayoutParams.MATCH_PARENT,
+					ViewGroup.LayoutParams.WRAP_CONTENT, 1);
+			tmpTV.setLayoutParams(params);
+			mSideIndexLayout.addView(tmpTV);
+		}
+		sideIndexHeight = mSideIndexLayout.getHeight();
+
+		mSideIndexLayout.setOnTouchListener(new OnTouchListener() {
+			@Override
+			public boolean onTouch(View v, MotionEvent event) {
+				// now you know coordinates of touch
+				sideIndexX = event.getX();
+				float sideIndexY = event.getY();
+
+				// and can display a proper item it country list
+				displayListItem(sideIndexY);
+
+				return true;
+			}
+		});
+	}
+
+	public void displayListItem(float sideIndexY) {
+		
+		indexListSize = tmpTV.getMeasuredHeight();
+		int position = (int) (sideIndexY/indexListSize);
+
+		// compute the item index for given event position belongs to
+		int itemPosition = mAlphabetListAdapter.getPositionForSection(position);
+
+		if (itemPosition < mAlphabetListAdapter.getCount()) {
+			// Object[] indexItem = sections.get(itemPosition);
+			// int subitemPosition = sections.get(indexItem[0]);
+
+			// ListView listView = (ListView) findViewById(android.R.id.list);
+			mListView.setSelection(itemPosition);
+		}
 	}
 
 	private OnScrollListener mScrollListener = new OnScrollListener() {
@@ -186,162 +264,323 @@ public class SelectPartnerCarrierFragment extends Fragment implements
 		public MultiFiniteProgressView progressView;
 	}
 
-	private static class PartnerSearchAdapter extends CursorAdapter {
+//	private static class PartnerSearchAdapter extends CursorAdapter {
+//
+//		/**
+//		 * State of ListView item that has never been determined.
+//		 */
+//		private static final int STATE_UNKNOWN = 0;
+//
+//		/**
+//		 * State of a ListView item that is sectioned. A sectioned item must
+//		 * display the separator.
+//		 */
+//		private static final int STATE_SECTIONED_CELL = 1;
+//
+//		/**
+//		 * State of a ListView item that is not sectioned and therefore does not
+//		 * display the separator.
+//		 */
+//		private static final int STATE_REGULAR_CELL = 2;
+//
+//		private final CharArrayBuffer mBuffer = new CharArrayBuffer(128);
+//		private int[] mCellStates;
+//
+//		private int mCurrentScreen;
+//
+//		int mHighlightColor = Color.CYAN;
+//
+//		public PartnerSearchAdapter(Context context, Cursor cursor,
+//				int currentScreen) {
+//			super(context, cursor, false);
+//			mCellStates = cursor == null ? null : new int[cursor.getCount()];
+//			mCurrentScreen = currentScreen;
+//			mHighlightColor = context.getResources().getColor(
+//					R.color.search_partner_highlight_color);
+//		}
+//
+//		@Override
+//		public void changeCursor(Cursor cursor) {
+//			super.changeCursor(cursor);
+//			mCellStates = cursor == null ? null : new int[cursor.getCount()];
+//		}
+//
+//		@Override
+//		public void bindView(View view, Context context, Cursor cursor) {
+//
+//			final PartnerInfoViewHolder holder = (PartnerInfoViewHolder) view
+//					.getTag();
+//
+//			/*
+//			 * Separator
+//			 */
+//			boolean needSeparator = false;
+//
+//			final int position = cursor.getPosition();
+//			cursor.copyStringToBuffer(PartnerTableQuery.TITLE,
+//					holder.titleBuffer);
+//
+//			switch (mCellStates[position]) {
+//			case STATE_SECTIONED_CELL:
+//				needSeparator = true;
+//				break;
+//
+//			case STATE_REGULAR_CELL:
+//				needSeparator = false;
+//				break;
+//
+//			case STATE_UNKNOWN:
+//			default:
+//				// A separator is needed if it's the first itemview of the
+//				// ListView or if the group of the current cell is different
+//				// from the previous itemview.
+//				if (position == 0) {
+//					needSeparator = true;
+//				} else {
+//					cursor.moveToPosition(position - 1);
+//
+//					if (SCREEN_SELECT_PARTNER == mCurrentScreen) {
+//						cursor.copyStringToBuffer(PartnerTableQuery.TITLE,
+//								mBuffer);
+//					} else {
+//						cursor.copyStringToBuffer(CarrierTableQuery.TITLE,
+//								mBuffer);
+//					}
+//					if (mBuffer.sizeCopied > 0
+//							&& holder.titleBuffer.sizeCopied > 0
+//							&& mBuffer.data[0] != holder.titleBuffer.data[0]) {
+//						needSeparator = true;
+//					}
+//
+//					cursor.moveToPosition(position);
+//				}
+//
+//				// Cache the result
+//				mCellStates[position] = needSeparator ? STATE_SECTIONED_CELL
+//						: STATE_REGULAR_CELL;
+//				break;
+//			}
+//
+//			if (needSeparator) {
+//				holder.separator.setText(holder.titleBuffer.data, 0, 1);
+//				holder.separator.setVisibility(View.VISIBLE);
+//			} else {
+//				holder.separator.setVisibility(View.GONE);
+//			}
+//
+//			/*
+//			 * Title
+//			 */
+//			holder.titleView.setText(holder.titleBuffer.data, 0,
+//					holder.titleBuffer.sizeCopied);
+//
+//			int accepted = 0;
+//			int rejected = 0;
+//			int tentative = 0;
+//
+//			if (SCREEN_SELECT_PARTNER == mCurrentScreen) {
+//				accepted = cursor.getInt(PartnerTableQuery.ACCEPTED);
+//				rejected = cursor.getInt(PartnerTableQuery.REJECTED);
+//				tentative = cursor.getInt(PartnerTableQuery.TENTATIVE);
+//			} else {
+//				accepted = cursor.getInt(CarrierTableQuery.ACCEPTED);
+//				rejected = cursor.getInt(CarrierTableQuery.REJECTED);
+//				tentative = cursor.getInt(CarrierTableQuery.TENTATIVE);
+//			}
+//
+//			if (rejected > 60) {
+//				view.setBackgroundColor(mHighlightColor);
+//				holder.separator.setBackgroundColor(Color.WHITE);
+//			} else {
+//				view.setBackgroundColor(Color.WHITE);
+//			}
+//
+//			holder.progressView.setIndicatorValues(accepted, rejected,
+//					tentative);
+//		}
+//
+//		@Override
+//		public View newView(Context context, Cursor cursor, ViewGroup parent) {
+//
+//			View v = LayoutInflater.from(context).inflate(R.layout.list_item,
+//					parent, false);
+//
+//			// The following code allows us to keep a reference on the child
+//			// views of the item. It prevents us from calling findViewById at
+//			// each getView/bindView and boosts the rendering code.
+//			PartnerInfoViewHolder holder = new PartnerInfoViewHolder();
+//			holder.separator = (TextView) v.findViewById(R.id.separator);
+//			holder.titleView = (TextView) v.findViewById(R.id.title);
+//			holder.progressView = (MultiFiniteProgressView) v
+//					.findViewById(R.id.progress_view);
+//
+//			v.setTag(holder);
+//
+//			return v;
+//		}
+//
+//		public View mItemContainer;
+//	}
 
-		/**
-		 * State of ListView item that has never been determined.
-		 */
-		private static final int STATE_UNKNOWN = 0;
-
-		/**
-		 * State of a ListView item that is sectioned. A sectioned item must
-		 * display the separator.
-		 */
-		private static final int STATE_SECTIONED_CELL = 1;
-
-		/**
-		 * State of a ListView item that is not sectioned and therefore does not
-		 * display the separator.
-		 */
-		private static final int STATE_REGULAR_CELL = 2;
-
-		private final CharArrayBuffer mBuffer = new CharArrayBuffer(128);
-		private int[] mCellStates;
-
-		private int mCurrentScreen;
-
-		int mHighlightColor = Color.CYAN;
-
-		public PartnerSearchAdapter(Context context, Cursor cursor,
-				int currentScreen) {
-			super(context, cursor, false);
-			mCellStates = cursor == null ? null : new int[cursor.getCount()];
-			mCurrentScreen = currentScreen;
-			mHighlightColor = context.getResources().getColor(
-					R.color.search_partner_highlight_color);
-		}
-
-		@Override
-		public void changeCursor(Cursor cursor) {
-			super.changeCursor(cursor);
-			mCellStates = cursor == null ? null : new int[cursor.getCount()];
-		}
-
-		@Override
-		public void bindView(View view, Context context, Cursor cursor) {
-
-			final PartnerInfoViewHolder holder = (PartnerInfoViewHolder) view
-					.getTag();
-
-			/*
-			 * Separator
-			 */
-			boolean needSeparator = false;
-
-			final int position = cursor.getPosition();
-			cursor.copyStringToBuffer(PartnerTableQuery.TITLE,
-					holder.titleBuffer);
-
-			switch (mCellStates[position]) {
-			case STATE_SECTIONED_CELL:
-				needSeparator = true;
-				break;
-
-			case STATE_REGULAR_CELL:
-				needSeparator = false;
-				break;
-
-			case STATE_UNKNOWN:
-			default:
-				// A separator is needed if it's the first itemview of the
-				// ListView or if the group of the current cell is different
-				// from the previous itemview.
-				if (position == 0) {
-					needSeparator = true;
-				} else {
-					cursor.moveToPosition(position - 1);
-
-					if (SCREEN_SELECT_PARTNER == mCurrentScreen) {
-						cursor.copyStringToBuffer(PartnerTableQuery.TITLE,
-								mBuffer);
-					} else {
-						cursor.copyStringToBuffer(CarrierTableQuery.TITLE,
-								mBuffer);
-					}
-					if (mBuffer.sizeCopied > 0
-							&& holder.titleBuffer.sizeCopied > 0
-							&& mBuffer.data[0] != holder.titleBuffer.data[0]) {
-						needSeparator = true;
-					}
-
-					cursor.moveToPosition(position);
-				}
-
-				// Cache the result
-				mCellStates[position] = needSeparator ? STATE_SECTIONED_CELL
-						: STATE_REGULAR_CELL;
-				break;
-			}
-
-			if (needSeparator) {
-				holder.separator.setText(holder.titleBuffer.data, 0, 1);
-				holder.separator.setVisibility(View.VISIBLE);
-			} else {
-				holder.separator.setVisibility(View.GONE);
-			}
-
-			/*
-			 * Title
-			 */
-			holder.titleView.setText(holder.titleBuffer.data, 0,
-					holder.titleBuffer.sizeCopied);
-
-			int accepted = 0;
-			int rejected = 0;
-			int tentative = 0;
-
-			if (SCREEN_SELECT_PARTNER == mCurrentScreen) {
-				accepted = cursor.getInt(PartnerTableQuery.ACCEPTED);
-				rejected = cursor.getInt(PartnerTableQuery.REJECTED);
-				tentative = cursor.getInt(PartnerTableQuery.TENTATIVE);
-			} else {
-				accepted = cursor.getInt(CarrierTableQuery.ACCEPTED);
-				rejected = cursor.getInt(CarrierTableQuery.REJECTED);
-				tentative = cursor.getInt(CarrierTableQuery.TENTATIVE);
-			}
-
-			if (rejected > 60) {
-				view.setBackgroundColor(mHighlightColor);
-				holder.separator.setBackgroundColor(Color.WHITE);
-			} else {
-				view.setBackgroundColor(Color.WHITE);
-			}
-
-			holder.progressView.setIndicatorValues(accepted, rejected,
-					tentative);
-		}
-
-		@Override
-		public View newView(Context context, Cursor cursor, ViewGroup parent) {
-
-			View v = LayoutInflater.from(context).inflate(R.layout.list_item,
-					parent, false);
-
-			// The following code allows us to keep a reference on the child
-			// views of the item. It prevents us from calling findViewById at
-			// each getView/bindView and boosts the rendering code.
-			PartnerInfoViewHolder holder = new PartnerInfoViewHolder();
-			holder.separator = (TextView) v.findViewById(R.id.separator);
-			holder.titleView = (TextView) v.findViewById(R.id.title);
-			holder.progressView = (MultiFiniteProgressView) v
-					.findViewById(R.id.progress_view);
-
-			v.setTag(holder);
-
-			return v;
-		}
-
-	}
+	// private static class PartnerSearchAdapter extends CursorAdapter {
+	//
+	// /**
+	// * State of ListView item that has never been determined.
+	// */
+	// private static final int STATE_UNKNOWN = 0;
+	//
+	// /**
+	// * State of a ListView item that is sectioned. A sectioned item must
+	// * display the separator.
+	// */
+	// private static final int STATE_SECTIONED_CELL = 1;
+	//
+	// /**
+	// * State of a ListView item that is not sectioned and therefore does not
+	// * display the separator.
+	// */
+	// private static final int STATE_REGULAR_CELL = 2;
+	//
+	// private final CharArrayBuffer mBuffer = new CharArrayBuffer(128);
+	// private int[] mCellStates;
+	//
+	// private int mCurrentScreen;
+	//
+	// int mHighlightColor = Color.CYAN;
+	//
+	// private AlphabetIndexer mAlphabetIndexer;
+	//
+	// public PartnerSearchAdapter(Context context, Cursor cursor,
+	// int currentScreen) {
+	// super(context, cursor, false);
+	// mCellStates = cursor == null ? null : new int[cursor.getCount()];
+	// mCurrentScreen = currentScreen;
+	// mHighlightColor = context.getResources().getColor(
+	// R.color.search_partner_highlight_color);
+	// }
+	//
+	// @Override
+	// public void changeCursor(Cursor cursor) {
+	// super.changeCursor(cursor);
+	// mCellStates = cursor == null ? null : new int[cursor.getCount()];
+	// }
+	//
+	// @Override
+	// public void bindView(View view, Context context, Cursor cursor) {
+	//
+	// final PartnerInfoViewHolder holder = (PartnerInfoViewHolder) view
+	// .getTag();
+	//
+	// /*
+	// * Separator
+	// */
+	// boolean needSeparator = false;
+	//
+	// final int position = cursor.getPosition();
+	// cursor.copyStringToBuffer(PartnerTableQuery.TITLE,
+	// holder.titleBuffer);
+	//
+	// switch (mCellStates[position]) {
+	// case STATE_SECTIONED_CELL:
+	// needSeparator = true;
+	// break;
+	//
+	// case STATE_REGULAR_CELL:
+	// needSeparator = false;
+	// break;
+	//
+	// case STATE_UNKNOWN:
+	// default:
+	// // A separator is needed if it's the first itemview of the
+	// // ListView or if the group of the current cell is different
+	// // from the previous itemview.
+	// if (position == 0) {
+	// needSeparator = true;
+	// } else {
+	// cursor.moveToPosition(position - 1);
+	//
+	// if (SCREEN_SELECT_PARTNER == mCurrentScreen) {
+	// cursor.copyStringToBuffer(PartnerTableQuery.TITLE,
+	// mBuffer);
+	// } else {
+	// cursor.copyStringToBuffer(CarrierTableQuery.TITLE,
+	// mBuffer);
+	// }
+	// if (mBuffer.sizeCopied > 0
+	// && holder.titleBuffer.sizeCopied > 0
+	// && mBuffer.data[0] != holder.titleBuffer.data[0]) {
+	// needSeparator = true;
+	// }
+	//
+	// cursor.moveToPosition(position);
+	// }
+	//
+	// // Cache the result
+	// mCellStates[position] = needSeparator ? STATE_SECTIONED_CELL
+	// : STATE_REGULAR_CELL;
+	// break;
+	// }
+	//
+	// if (needSeparator) {
+	// holder.separator.setText(holder.titleBuffer.data, 0, 1);
+	// holder.separator.setVisibility(View.VISIBLE);
+	// } else {
+	// holder.separator.setVisibility(View.GONE);
+	// }
+	//
+	// /*
+	// * Title
+	// */
+	// holder.titleView.setText(holder.titleBuffer.data, 0,
+	// holder.titleBuffer.sizeCopied);
+	//
+	// int accepted = 0;
+	// int rejected = 0;
+	// int tentative = 0;
+	//
+	// if (SCREEN_SELECT_PARTNER == mCurrentScreen) {
+	// accepted = cursor.getInt(PartnerTableQuery.ACCEPTED);
+	// rejected = cursor.getInt(PartnerTableQuery.REJECTED);
+	// tentative = cursor.getInt(PartnerTableQuery.TENTATIVE);
+	// } else {
+	// accepted = cursor.getInt(CarrierTableQuery.ACCEPTED);
+	// rejected = cursor.getInt(CarrierTableQuery.REJECTED);
+	// tentative = cursor.getInt(CarrierTableQuery.TENTATIVE);
+	// }
+	//
+	// if (rejected > 60) {
+	// view.setBackgroundColor(mHighlightColor);
+	// holder.separator.setBackgroundColor(Color.WHITE);
+	// } else {
+	// view.setBackgroundColor(Color.WHITE);
+	// }
+	//
+	// holder.progressView.setIndicatorValues(accepted, rejected,
+	// tentative);
+	// }
+	//
+	// @Override
+	// public View newView(Context context, Cursor cursor, ViewGroup parent) {
+	//
+	// View v = LayoutInflater.from(context).inflate(R.layout.list_item,
+	// parent, false);
+	//
+	// // The following code allows us to keep a reference on the child
+	// // views of the item. It prevents us from calling findViewById at
+	// // each getView/bindView and boosts the rendering code.
+	// PartnerInfoViewHolder holder = new PartnerInfoViewHolder();
+	// holder.separator = (TextView) v.findViewById(R.id.separator);
+	// holder.titleView = (TextView) v.findViewById(R.id.title);
+	// holder.progressView = (MultiFiniteProgressView) v
+	// .findViewById(R.id.progress_view);
+	// holder.mItemContainer = v.findViewById(R.id.item_container);
+	//
+	// v.setTag(holder);
+	//
+	// return v;
+	// }
+	//
+	// }
 
 	/**
 	 * Keep query data in one place
@@ -406,18 +645,22 @@ public class SelectPartnerCarrierFragment extends Fragment implements
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
 		Log.d("test", "onLoadFinished");
-		mPartnerSearchAdapter.changeCursor(cursor);
+		mAlphabetListAdapter.changeCursor(cursor);
+		updateSideAlphabetIndex();
 	}
 
 	@Override
 	public void onLoaderReset(Loader<Cursor> loader) {
 		Log.d("test", "onLoaderReset");
-		mPartnerSearchAdapter.changeCursor(null);
+		mAlphabetListAdapter.changeCursor(null);
 	}
 
 	@Override
 	public void onItemClick(AdapterView<?> parent, View view, int position,
 			long id) {
+		if (SCREEN_SELECT_PARTNER != mCurrentScreen) {
+			return;
+		}
 		Log.d(TAG, "onItemClick : " + position);
 		AppUtil.hideKeyboard(getActivity(), mSearchEditText);
 

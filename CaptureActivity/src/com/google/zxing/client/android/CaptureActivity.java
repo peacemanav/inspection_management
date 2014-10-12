@@ -337,26 +337,41 @@ public final class CaptureActivity extends Activity implements
 	public boolean onOptionsItemSelected(MenuItem item) {
 		Intent intent = new Intent(Intent.ACTION_VIEW);
 		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
-		switch (item.getItemId()) {
-		case R.id.menu_share:
+		
+		if (item.getItemId() == R.id.menu_share) {
 			intent.setClassName(this, ShareActivity.class.getName());
 			startActivity(intent);
-			break;
-		case R.id.menu_history:
+		} else if (item.getItemId() == R.id.menu_history) {
 			intent.setClassName(this, HistoryActivity.class.getName());
 			startActivityForResult(intent, HISTORY_REQUEST_CODE);
-			break;
-		case R.id.menu_settings:
+		} else if (item.getItemId() == R.id.menu_settings) {
 			intent.setClassName(this, PreferencesActivity.class.getName());
 			startActivity(intent);
-			break;
-		case R.id.menu_help:
+		} else if (item.getItemId() == R.id.menu_help) {
 			intent.setClassName(this, HelpActivity.class.getName());
 			startActivity(intent);
-			break;
-		default:
-			return super.onOptionsItemSelected(item);
 		}
+		
+//		switch (item.getItemId()) {
+//		case R.id.menu_share:
+//			intent.setClassName(this, ShareActivity.class.getName());
+//			startActivity(intent);
+//			break;
+//		case R.id.menu_history:
+//			intent.setClassName(this, HistoryActivity.class.getName());
+//			startActivityForResult(intent, HISTORY_REQUEST_CODE);
+//			break;
+//		case R.id.menu_settings:
+//			intent.setClassName(this, PreferencesActivity.class.getName());
+//			startActivity(intent);
+//			break;
+//		case R.id.menu_help:
+//			intent.setClassName(this, HelpActivity.class.getName());
+//			startActivity(intent);
+//			break;
+//		default:
+//			return super.onOptionsItemSelected(item);
+//		}
 		return true;
 	}
 

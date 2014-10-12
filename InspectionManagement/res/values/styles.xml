@@ -16,7 +16,7 @@
         <style name="CustomActionBar" parent="@android:style/Widget.Holo.Light.ActionBar">
         <item name="android:background">@color/action_bar_bg</item>
         <item name="android:titleTextStyle">@style/CustomActionBarTitleText</item>
-        <item name="android:icon">@android:color/transparent</item>
+        <item name="android:icon">@drawable/app_logo</item>
     </style>
 
     <!-- ActionBar title text -->
@@ -31,8 +31,16 @@
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->
         <item name="android:textColorHint">#a4c2e5</item>
         <item name="android:actionBarStyle">@style/CustomActionBar</item>
+        <!--  >item name="android:listSeparatorTextViewStyle">@style/CustomListSeparatorTheme</item-->
     </style>
-
+    
+    <style name="CustomListSeparatorTheme" parent="@*android:style/Widget.TextView.ListSeparator">
+        
+        <item name="android:textAllCaps">true</item>
+        <item name="android:background">@android:color/white</item>
+        <item name="android:drawableBottom">@drawable/button</item>
+    </style>
+    
     <style name="headerTextVeiw" parent="@android:style/Widget.TextView">
         <item name="android:textStyle">bold</item>
         <item name="android:textColor">@color/po_option_text_color</item>
