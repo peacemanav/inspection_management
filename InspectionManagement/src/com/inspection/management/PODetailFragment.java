@@ -3,11 +3,10 @@ package com.inspection.management;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.inspection.management.util.AppUtil;
-import com.ui.components.ManageActionBarTitle;
-
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -18,9 +17,11 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
-public class PODetailFragment extends Fragment implements OnClickListener, ManageActionBarTitle {
+import com.ui.components.ManageActionBarTitle;
+
+public class PODetailFragment extends Fragment implements OnClickListener,
+		ManageActionBarTitle {
 
 	private static final String PO_NUMBER = "po_number";
 
@@ -32,6 +33,12 @@ public class PODetailFragment extends Fragment implements OnClickListener, Manag
 	private TextView mPOTextView;
 	private Button mCancelButton;
 	private Button mLogoutButton;
+	private Button mSaveNContinueButton;
+	private View mSavenConitnueView;
+
+	private String mCarrier;
+	private String mWareHouseNumber;
+	private String mStatus;
 
 	public PODetailFragment() {
 	}
@@ -43,7 +50,7 @@ public class PODetailFragment extends Fragment implements OnClickListener, Manag
 		instance.setArguments(args);
 		return instance;
 	}
-	
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -64,11 +71,18 @@ public class PODetailFragment extends Fragment implements OnClickListener, Manag
 				.findViewById(R.id.warehouse_no_dropdown);
 		mStatusSpinner = (Spinner) view.findViewById(R.id.status_dropdown);
 		mPOTextView = (TextView) view.findViewById(R.id.title_po_number);
+
 		mCancelButton = (Button) view.findViewById(R.id.cancel_button);
 		mCancelButton.setOnClickListener(this);
-		
+
 		mLogoutButton = (Button) view.findViewById(R.id.logout_button);
 		mLogoutButton.setOnClickListener(this);
+
+		mSavenConitnueView = view.findViewById(R.id.save_panel);
+		mSaveNContinueButton = (Button) view
+				.findViewById(R.id.save_n_continue_button);
+		mSaveNContinueButton.setOnClickListener(this);
+
 	}
 
 	@Override
@@ -117,7 +131,10 @@ public class PODetailFragment extends Fragment implements OnClickListener, Manag
 		case R.id.logout_button:
 			attachSelectCarrierFragment();
 			break;
-			
+		case R.id.save_n_continue_button:
+			// TODO: Save data to database
+			break;
+
 		default:
 			break;
 		}
@@ -127,21 +144,26 @@ public class PODetailFragment extends Fragment implements OnClickListener, Manag
 		getActivity().getSupportFragmentManager().beginTransaction()
 				.remove(this).commit();
 	}
-	
+
 	private void attachSelectCarrierFragment() {
-		getActivity().getSupportFragmentManager().beginTransaction()
-		.add(R.id.container, new SelectPartnerCarrierFragment(SelectPartnerCarrierFragment.SCREEN_SELECT_CARRIER))
-		.addToBackStack(null).commit();
+		getActivity()
+				.getSupportFragmentManager()
+				.beginTransaction()
+				.add(R.id.container,
+						new SelectPartnerCarrierFragment(
+								SelectPartnerCarrierFragment.SCREEN_SELECT_CARRIER))
+				.addToBackStack(null).commit();
 	}
 
 	// initialize carriers
 	private void initCarrierList() {
 
 		List<String> list = new ArrayList<String>();
+		list.add((String) mCarrierSpinner.getPrompt());
 		list.add("Carrier 1");
 		list.add("Carrier 2");
 		list.add("Carrier 3");
-		ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(
+		ArrayAdapter<String> dataAdapter = new PromptSpinnerAdapter(
 				getActivity(), android.R.layout.simple_spinner_item, list);
 		dataAdapter
 				.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -152,10 +174,11 @@ public class PODetailFragment extends Fragment implements OnClickListener, Manag
 	private void initWarehouseNumList() {
 
 		List<String> list = new ArrayList<String>();
+		list.add((String) mWarehouseNumSpinner.getPrompt());
 		list.add("Warehouse #1");
 		list.add("Warehouwe #2");
 		list.add("Warehouse #3");
-		ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(
+		ArrayAdapter<String> dataAdapter = new PromptSpinnerAdapter(
 				getActivity(), android.R.layout.simple_spinner_item, list);
 		dataAdapter
 				.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -166,10 +189,11 @@ public class PODetailFragment extends Fragment implements OnClickListener, Manag
 	private void initStatusList() {
 
 		List<String> list = new ArrayList<String>();
+		list.add((String) mStatusSpinner.getPrompt());
 		list.add("Status 1");
 		list.add("Status 2");
 		list.add("Status 3");
-		ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(
+		ArrayAdapter<String> dataAdapter = new PromptSpinnerAdapter(
 				getActivity(), android.R.layout.simple_spinner_item, list);
 		dataAdapter
 				.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -177,14 +201,16 @@ public class PODetailFragment extends Fragment implements OnClickListener, Manag
 	}
 
 	private class OnCarrierSelectedListener implements OnItemSelectedListener {
+		private boolean isInitilizing = true;
 
 		public void onItemSelected(AdapterView<?> parent, View view, int pos,
 				long id) {
-//			Toast.makeText(
-//					parent.getContext(),
-//					"OnCarrierSelectedListener : "
-//							+ parent.getItemAtPosition(pos).toString(),
-//					Toast.LENGTH_SHORT).show();
+			if (isInitilizing) {
+				isInitilizing = false;
+				return;
+			}
+			mCarrier = (String) parent.getAdapter().getItem(pos);
+			onItemSelectionChanged();
 		}
 
 		@Override
@@ -195,14 +221,16 @@ public class PODetailFragment extends Fragment implements OnClickListener, Manag
 
 	private class OnWareHouseNumSelectedListener implements
 			OnItemSelectedListener {
+		private boolean isInitilizing = true;
 
 		public void onItemSelected(AdapterView<?> parent, View view, int pos,
 				long id) {
-//			Toast.makeText(
-//					parent.getContext(),
-//					"OnWareHouseNumSelectedListener : "
-//							+ parent.getItemAtPosition(pos).toString(),
-//					Toast.LENGTH_SHORT).show();
+			if (isInitilizing) {
+				isInitilizing = false;
+				return;
+			}
+			mWareHouseNumber = (String) parent.getAdapter().getItem(pos);
+			onItemSelectionChanged();
 		}
 
 		@Override
@@ -211,14 +239,16 @@ public class PODetailFragment extends Fragment implements OnClickListener, Manag
 	}
 
 	private class OnStatusSelectedListener implements OnItemSelectedListener {
+		private boolean isInitilizing = true;
 
 		public void onItemSelected(AdapterView<?> parent, View view, int pos,
 				long id) {
-//			Toast.makeText(
-//					parent.getContext(),
-//					"OnStatusSelectedListener : "
-//							+ parent.getItemAtPosition(pos).toString(),
-//					Toast.LENGTH_SHORT).show();
+			if (isInitilizing) {
+				isInitilizing = false;
+				return;
+			}
+			mStatus = (String) parent.getAdapter().getItem(pos);
+			onItemSelectionChanged();
 		}
 
 		@Override
@@ -229,5 +259,58 @@ public class PODetailFragment extends Fragment implements OnClickListener, Manag
 	@Override
 	public void updateActionBarTitle() {
 		getActivity().getActionBar().setTitle("A & Z LLC");
+	}
+
+	private void onItemSelectionChanged() {
+		if (TextUtils.isEmpty(mCarrier)
+				|| mCarrierSpinner.getPrompt().equals(mCarrier)) {
+			enableView(false);
+		} else if (TextUtils.isEmpty(mWareHouseNumber)
+				|| mWarehouseNumSpinner.getPrompt().equals(mWareHouseNumber)) {
+			enableView(false);
+		} else if (TextUtils.isEmpty(mStatus)
+				|| mStatusSpinner.getPrompt().equals(mStatus)) {
+			enableView(false);
+		} else {
+			enableView(true);
+		}
+	}
+
+	private void enableView(boolean enable) {
+		// TODO: background color need to be extracted from images and set
+		if (enable) {
+			mSavenConitnueView.setVisibility(View.VISIBLE);
+		} else {
+			mSavenConitnueView.setVisibility(View.GONE);
+		}
+	}
+
+	private class PromptSpinnerAdapter extends ArrayAdapter<String> {
+
+		public PromptSpinnerAdapter(Context context, int resource,
+				List<String> list) {
+			super(context, resource, list);
+		}
+
+		@Override
+		public View getDropDownView(int position, View convertView,
+				ViewGroup parent) {
+			View v = null;
+			if (position == 0) {
+				TextView tv = new TextView(getContext());
+				tv.setHeight(0);
+				tv.setVisibility(View.GONE);
+				tv.setTag(R.id.prompt_tag_key, "prompt");
+				v = tv;
+			} else if (convertView != null
+					&& "prompt".equalsIgnoreCase((String) convertView
+							.getTag(R.id.prompt_tag_key))) {
+				// don't reuse prompt view
+				v = super.getDropDownView(position, null, parent);
+			} else {
+				v = super.getDropDownView(position, convertView, parent);
+			}
+			return v;
+		}
 	}
 }

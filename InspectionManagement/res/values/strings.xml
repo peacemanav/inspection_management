@@ -24,5 +24,6 @@
     <string name="scan_code">Scan</string>
     <string name="scan_code_not_found">Content not found!\nPlease rescan!</string>
     <string name="scan_code_error_title">Data not found</string>
+    <string name="save_continue">Save &amp; Continue</string>
 
 </resources>
