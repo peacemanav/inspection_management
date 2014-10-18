@@ -26,4 +26,96 @@
     <string name="scan_code_error_title">Data not found</string>
     <string name="save_continue">Save &amp; Continue</string>
 
+    <!-- product details -->
+    <string name="product_type">PRODUCT TYPE</string>
+
+    <string-array name="product_type_array">
+        <item>Apple</item>
+        <item>Banana</item>
+        <item>Orange</item>
+        <item>Guava</item>
+        <item>Jackfruit</item>
+        <item>Lemon</item>
+        <item>Melon</item>
+        <item>Peach</item>
+    </string-array>
+
+    <string name="prompt_product_type">choose product</string>
+    <string name="rejection_category">REJECTION CATEGORY</string>
+    <string name="prompt_rejection_category">choose rejection category</string>
+
+    <string-array name="rejection_category_array">
+        <item>category 1</item>
+        <item>category 2</item>
+        <item>category 3</item>
+        <item>category 4</item>
+    </string-array>
+
+    <string name="rpc_title">RPC</string>
+    <string name="prompt_rpc">choose rpc</string>
+
+    <string-array name="rpc_category_array">
+        <item>rpc 1</item>
+        <item>rpc 2</item>
+        <item>rpc 3</item>
+        <item>rpc 4</item>
+    </string-array>
+
+    <string name="brand_title">BRAND</string>
+    <string name="prompt_brand">choose brand</string>
+
+    <string-array name="brand_category_array">
+        <item>brand 1</item>
+        <item>brand 2</item>
+        <item>brand 3</item>
+        <item>brand 4</item>
+    </string-array>
+
+    <string name="private_label">Private Label?</string>
+    <string name="prompt_private_label">choose label</string>
+
+    <string-array name="private_label_array">
+        <item>yes</item>
+        <item>no</item>
+    </string-array>
+
+    <string name="origin_label">ORIGIN</string>
+    <string name="of_cases"># OF CASES</string>
+    <string name="hint_origin">Origin</string>
+    <string name="hint_of_cases"># of cases</string>
+    <string name="lot_label">LOT #</string>
+    <string name="lot_hint">Lot #</string>
+    <string name="pack_date_label">PACK DATE</string>
+    <string name="hint_pack_date">Pack Date</string>
+    <string name="claim_filed_against_label">CLAIM FILED AGAINST</string>
+    <string name="prompt_claim_filed">choose claim filed category</string>
+
+    <string-array name="claim_filed_category_array">
+        <item>claim_filed 1</item>
+        <item>claim_filed 2</item>
+        <item>claim_filed 3</item>
+        <item>claim_filed 4</item>
+    </string-array>
+
+    <string name="seal_label">SEAL #</string>
+    <string name="hint_seal_label">Seal #</string>
+    <string name="pulp_temprature_range_label">PULP TEMPRATURE RANGE</string>
+    <string name="hint_pulp_temprature_range">Pulp temprature range</string>
+    <string name="recorder_temprature_range_label">RECORDER TEMPRATURE RANGE</string>
+    <string name="hint_recorder_temprature_range">Recorder temprature range</string>
+    <string name="dept_label">DEPT #</string>
+    <string name="hint_dept_label">Deptartment #</string>
+    <string name="fineline_label">FINELINE</string>
+    <string name="hint_finelinel">Fineline</string>
+    <string name="inspected_by_label">INSPECTED BY</string>
+    <string name="hint_inspected_by">Inspected by</string>
+    <string name="comments_label">COMMENTS</string>
+    <string name="hint_comments">Comments</string>
+    <string name="quality_control_comments_label">QUALITY CONTROL COMMENTS</string>
+    <string name="hint_quality_control_comments">Quality control comments</string>
+    <string name="supplier_contact_label">SUPPLIER CONTACT</string>
+    <string name="hint_supplier_contact">Supplier contact</string>
+    <string name="supplier_comments_label">SUPPLIER COMMENTS</string>
+    <string name="hint_supplier_comments">Supplier comments</string>
+
 </resources>

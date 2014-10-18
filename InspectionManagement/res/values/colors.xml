@@ -13,5 +13,6 @@
     <color name="divider_line_color">#305196</color>
     <!-- background light -->
     <color name="bg_violt_light">#81BEF7</color>
+    <color name="field_divider_color">#86a3d1</color>
 
 </resources>
