@@ -25,6 +25,13 @@
     <string name="scan_code_not_found">Content not found!\nPlease rescan!</string>
     <string name="scan_code_error_title">Data not found</string>
     <string name="save_continue">Save &amp; Continue</string>
+    <string name="accept">Accept</string>
+    <string name="reject">Reject</string>
+    <string name="accepted">Accepted</string>
+    <string name="edit">Edit</string>
+    <string name="quality_control_details">Quality Control Details</string>
+    <string name="trail_temp_range">Trailer Temperature Range</string>
+    <string name="defects">Defects</string>
 
     <!-- product details -->
     <string name="product_type">PRODUCT TYPE</string>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/logout_bottom_panel"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/action_bar_bg"
+    android:gravity="center_vertical"
+    android:padding="3dp" >
+
+    <Button
+        android:id="@+id/cancel_button"
+        style="@style/logoutButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:text="@string/cancel_text" />
+
+    <Button
+        android:id="@+id/logout_button"
+        style="@style/logoutButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/cancel_button"
+        android:layout_alignBottom="@+id/cancel_button"
+        android:layout_alignParentRight="true"
+        android:text="@string/logout_text" />
+
+</RelativeLayout>

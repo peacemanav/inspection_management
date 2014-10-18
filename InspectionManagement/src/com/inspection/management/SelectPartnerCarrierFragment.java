@@ -658,15 +658,18 @@ public class SelectPartnerCarrierFragment extends Fragment implements
 	@Override
 	public void onItemClick(AdapterView<?> parent, View view, int position,
 			long id) {
-		if (SCREEN_SELECT_PARTNER != mCurrentScreen) {
-			return;
-		}
 		Log.d(TAG, "onItemClick : " + position);
 		AppUtil.hideKeyboard(getActivity(), mSearchEditText);
+		if (SCREEN_SELECT_PARTNER == mCurrentScreen) {
+			getActivity().getSupportFragmentManager().beginTransaction()
+			.add(R.id.container, new PurchaseOrderFragment())
+			.addToBackStack(null).commit();
+		} else {
+			getActivity().getSupportFragmentManager().beginTransaction()
+			.add(R.id.container, new POAcceptFragment())
+			.addToBackStack(null).commit();
 
-		getActivity().getSupportFragmentManager().beginTransaction()
-				.add(R.id.container, new PurchaseOrderFragment())
-				.addToBackStack(null).commit();
+		}
 	}
 
 	@Override

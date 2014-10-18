@@ -264,13 +264,13 @@ public class PODetailFragment extends Fragment implements OnClickListener,
 	private void onItemSelectionChanged() {
 		if (TextUtils.isEmpty(mCarrier)
 				|| mCarrierSpinner.getPrompt().equals(mCarrier)) {
-			enableView(false);
+			enableView(true);
 		} else if (TextUtils.isEmpty(mWareHouseNumber)
 				|| mWarehouseNumSpinner.getPrompt().equals(mWareHouseNumber)) {
-			enableView(false);
+			enableView(true);
 		} else if (TextUtils.isEmpty(mStatus)
 				|| mStatusSpinner.getPrompt().equals(mStatus)) {
-			enableView(false);
+			enableView(true);
 		} else {
 			enableView(true);
 		}
